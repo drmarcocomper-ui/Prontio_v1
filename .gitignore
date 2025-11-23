@@ -1,0 +1,63 @@
+# ============================
+# PRONTIO - .gitignore oficial
+# ============================
+
+# Node (caso futuramente use npm)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs gerais
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# VScode
+.vscode/
+.history/
+*.code-workspace
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Cache do navegador
+.cache/
+*.cache
+*.local
+
+# Arquivos ZIP ou exportações temporárias
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Arquivos de backup do editor
+*~
+*.bak
+*.backup
+
+# Python server (se usar no futuro)
+__pycache__/
+
+# PWA - não ignorar sw/manifest, mas ignorar cache gerado
+/workbox-*.js
+sw.js.map
+
+# Coverage (caso use testes futuramente)
+coverage/
+
+# MacOS Finder
+.AppleDouble
+.LSOverride
+
+# GitHub Codespaces / Devcontainers
+.devcontainer/
+*.devcontainer.json
+
+# Google Apps Script - ignorar cache de deploy
+.gas/
