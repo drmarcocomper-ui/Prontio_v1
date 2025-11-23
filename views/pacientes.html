@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Pacientes</title>
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- ======================= GOOGLE FONTS (Inter) ======================= -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS ÚNICO DO SISTEMA ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+    <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/pacientes.css">
+
+  <!-- ======================= JS BASE DO PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS específico do módulo ==================== -->
+  <script src="../assets/js/modules/pacientes.js" defer></script>
+</head>
+
+<body data-page="pacientes">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA PELO loader) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP MOBILE ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- ========================== TOPBAR ========================== -->
+      <header class="topbar">
+
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <div class="topbar-search search-box-pacientes">
+            <input
+              type="text"
+              id="buscaPaciente"
+              placeholder="Buscar paciente pelo nome, CPF ou telefone"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="topbar-right">
+
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <!-- Dropdown -->
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- ========================== CONTEÚDO INTERNO ========================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Pacientes</h1>
+        <p class="page-subtitle">
+          Visualize, filtre e inicie o atendimento a partir da central de pacientes.
+        </p>
+
+        <div class="pacientes-main">
+
+          <!-- CARD LISTA -->
+          <section class="card pacientes-card">
+
+            <div class="pacientes-card-header">
+              <div>
+                <h2>Lista de pacientes</h2>
+                <p class="subtitle">
+                  Clique em “Prontuário” ou “Editar” para continuar o atendimento.
+                </p>
+              </div>
+
+              <div class="pacientes-card-actions">
+                <label class="filtro-status">
+                  <span>Status</span>
+                  <select id="filtroAtivo" class="select-status">
+                    <option value="S">Ativos</option>
+                    <option value="N">Inativos</option>
+                    <option value="TODOS">Todos</option>
+                  </select>
+                </label>
+
+                <button type="button" id="btnNovoPaciente" class="btn btn-primary">
+                  + Novo paciente
+                </button>
+              </div>
+            </div>
+
+            <div id="listaPacientes" class="lista-pacientes"></div>
+
+          </section>
+
+          <!-- ========================== DRAWER DO PACIENTE ========================== -->
+          <aside class="pacientes-drawer" id="painelPaciente">
+
+            <div class="drawer-header">
+              <div>
+                <h2 id="tituloFormulario">Novo paciente</h2>
+                <p class="drawer-subtitle">Preencha os dados e salve para registrar o paciente.</p>
+              </div>
+              <button type="button" class="drawer-close" id="btnFecharDrawer">✕</button>
+            </div>
+
+            <div class="drawer-body">
+
+              <form id="paciente-form">
+
+                <input type="hidden" id="idPaciente">
+
+                <div class="grid-2">
+                  <div class="campo">
+                    <label for="nomePaciente">Nome completo</label>
+                    <input type="text" id="nomePaciente" required>
+                  </div>
+
+                  <div class="campo">
+                    <label for="dataNascimento">Data de nascimento</label>
+                    <input type="date" id="dataNascimento">
+                  </div>
+                </div>
+
+                <div class="grid-3">
+                  <div class="campo">
+                    <label for="sexo">Sexo</label>
+                    <select id="sexo">
+                      <option value="">Selecione</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Feminino</option>
+                    </select>
+                  </div>
+
+                  <div class="campo">
+                    <label for="cpf">CPF</label>
+                    <input type="text" id="cpf" maxlength="14">
+                  </div>
+
+                  <div class="campo">
+                    <label for="rg">RG</label>
+                    <input type="text" id="rg">
+                  </div>
+                </div>
+
+                <div class="grid-2">
+                  <div class="campo">
+                    <label for="telefone1">Telefone 1</label>
+                    <input type="tel" id="telefone1">
+                  </div>
+
+                  <div class="campo">
+                    <label for="telefone2">Telefone 2</label>
+                    <input type="tel" id="telefone2">
+                  </div>
+                </div>
+
+                <div class="campo">
+                  <label for="email">E-mail</label>
+                  <input type="email" id="email">
+                </div>
+
+                <div class="grid-2">
+                  <div class="campo">
+                    <label for="enderecoRua">Rua</label>
+                    <input type="text" id="enderecoRua">
+                  </div>
+
+                  <div class="campo">
+                    <label for="enderecoNumero">Número</label>
+                    <input type="text" id="enderecoNumero">
+                  </div>
+                </div>
+
+                <div class="grid-3">
+                  <div class="campo">
+                    <label for="enderecoBairro">Bairro</label>
+                    <input type="text" id="enderecoBairro">
+                  </div>
+
+                  <div class="campo">
+                    <label for="enderecoCidade">Cidade</label>
+                    <input type="text" id="enderecoCidade">
+                  </div>
+
+                  <div class="campo">
+                    <label for="enderecoUF">UF</label>
+                    <input type="text" id="enderecoUF" maxlength="2">
+                  </div>
+                </div>
+
+                <div class="campo">
+                  <label for="enderecoCEP">CEP</label>
+                  <input type="text" id="enderecoCEP" maxlength="9">
+                </div>
+
+                <div class="campo">
+                  <label for="alergias">Alergias</label>
+                  <textarea id="alergias"></textarea>
+                </div>
+
+                <div class="campo">
+                  <label for="medicacoesEmUso">Medicações em uso</label>
+                  <textarea id="medicacoesEmUso"></textarea>
+                </div>
+
+                <div class="campo">
+                  <label for="doencasCronicas">Doenças crônicas</label>
+                  <textarea id="doencasCronicas"></textarea>
+                </div>
+
+                <div class="campo">
+                  <label for="obsImportantes">Observações importantes</label>
+                  <textarea id="obsImportantes"></textarea>
+                </div>
+
+                <div class="grid-3">
+                  <div class="campo">
+                    <label for="planoSaude">Plano de saúde</label>
+                    <input type="text" id="planoSaude">
+                  </div>
+
+                  <div class="campo">
+                    <label for="numeroCarteirinha">Nº carteirinha</label>
+                    <input type="text" id="numeroCarteirinha">
+                  </div>
+
+                  <div class="campo">
+                    <label for="validadeCarteirinha">Validade carteirinha</label>
+                    <input type="month" id="validadeCarteirinha">
+                  </div>
+                </div>
+
+                <div class="campo">
+                  <label for="ativo">Status</label>
+                  <select id="ativo">
+                    <option value="S">Ativo</option>
+                    <option value="N">Inativo</option>
+                  </select>
+                </div>
+
+                <div class="acoes-form">
+                  <button type="button" id="btnCancelarEdicao" class="btn btn-secondary">Limpar</button>
+
+                  <div class="acoes-form-right">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="button" id="btnSalvarIrProntuario" class="btn btn-secondary">
+                      Salvar e ir para Prontuário
+                    </button>
+                  </div>
+                </div>
+
+              </form>
+
+              <div id="mensagemStatus" class="mensagem-status" hidden></div>
+
+            </div> <!-- /drawer-body -->
+          </aside>
+
+          <!-- ===== BACKDROP DO DRAWER ===== -->
+          <div class="drawer-backdrop" id="backdropPaciente"></div>
+
+        </div> <!-- /pacientes-main -->
+
+      </main>
+
+    </div> <!-- /app-content -->
+
+  </div> <!-- /app -->
+
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Exames</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- ======================= GOOGLE FONTS (Inter) ======================= -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS ÚNICO DO SISTEMA ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+    <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/exames.css">
+
+  <!-- ======================= JS CORE DO PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS DO MÓDULO =============================== -->
+  <script src="../assets/js/modules/exames.js" defer></script>
+</head>
+
+<body data-page="exames">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP DO MENU NO MOBILE ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Pedido de Exames</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ======================== CONTEÚDO INTERNO ======================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Exames do Paciente</h1>
+        <p class="page-subtitle">
+          Gere pedidos de exame vinculados ao paciente selecionado e acompanhe o histórico.
+        </p>
+
+        <!-- ======================== DADOS DO PACIENTE ======================== -->
+        <section class="card paciente-box">
+          <p><strong>Paciente:</strong> <span id="pacienteNome">–</span></p>
+          <p><strong>ID:</strong> <span id="pacienteID">–</span></p>
+          <p><strong>Telefone:</strong> <span id="pacienteTelefone">–</span></p>
+
+          <input type="hidden" id="pacienteIdHidden">
+          <input type="hidden" id="pacienteNomeHidden">
+          <input type="hidden" id="pacienteTelefoneHidden">
+        </section>
+
+        <!-- ======================== FORMULÁRIO DE EXAME ======================== -->
+        <section class="card">
+
+          <h2 class="page-section-title">Novo pedido de exame</h2>
+
+          <div class="grid-2">
+            <div class="campo">
+              <label for="tipoSolicitacao">Tipo de solicitação</label>
+              <select id="tipoSolicitacao">
+                <option value="">Selecione...</option>
+                <option value="SADT">SADT – Convênio</option>
+                <option value="Particular">Exame particular</option>
+              </select>
+            </div>
+
+            <div class="campo" id="grupoConvenio">
+              <label for="convenio">Convênio (SADT)</label>
+              <input type="text" id="convenio" placeholder="Ex.: Unimed, Cassi, Fusex...">
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="exameData">Data do pedido</label>
+              <input type="datetime-local" id="exameData">
+            </div>
+
+            <div class="campo">
+              <label for="categoriaExame">Categoria</label>
+              <select id="categoriaExame">
+                <option value="imagem">Imagem</option>
+                <option value="laboratorio">Laboratório</option>
+                <option value="urodinamico">Urodinâmico</option>
+                <option value="biopsia">Biópsia</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="tipoExame">Tipo de exame</label>
+              <select id="tipoExame"></select>
+            </div>
+          </div>
+
+          <p class="text-helper">
+            Selecione um tipo de exame para carregar um modelo e ajuste o texto conforme necessário.
+          </p>
+
+          <div class="campo">
+            <label for="exameTexto">Texto do pedido</label>
+            <textarea
+              id="exameTexto"
+              rows="8"
+              placeholder="Descreva o exame, lateralidade, indicação clínica, observações para o laudo..."
+            ></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="exameObs">Observações internas (opcional)</label>
+            <textarea
+              id="exameObs"
+              rows="3"
+              placeholder="Ex.: clínica preferencial, prazos, observações internas..."
+            ></textarea>
+          </div>
+
+          <div class="campo checkbox-inline">
+            <label>
+              <input type="checkbox" id="flagUrgente">
+              Marcar como exame urgente
+            </label>
+          </div>
+
+          <div class="acoes-form">
+            <button type="button" class="btn btn-primary" id="btnSalvarExame">
+              Salvar pedido
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnImprimirExame">
+              Imprimir pedido
+            </button>
+          </div>
+
+          <div id="mensagemExame" class="mensagem-status" hidden></div>
+
+        </section>
+
+        <!-- ======================== HISTÓRICO ======================== -->
+        <section class="card">
+          <h2 class="page-section-title">Histórico de pedidos de exame</h2>
+          <div id="historicoExames"></div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

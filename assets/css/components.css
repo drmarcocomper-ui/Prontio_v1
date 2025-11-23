@@ -1,0 +1,444 @@
+/* ============================================================
+   COMPONENTES GLOBAIS – PRONTIO
+   Componentes reutilizáveis em todas as telas do sistema
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. Títulos e textos auxiliares
+------------------------------------------------------------ */
+
+.page-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 1.4rem;
+}
+
+
+
+/* ============================================================
+   2. BOTÕES (novo padrão PRONTIO)
+   ------------------------------------------------------------ */
+
+/* Reset */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* botão principal */
+.btn--primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 1rem;
+  font-size: 0.86rem;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  transition: 0.2s;
+}
+.btn--primary:hover {
+  background: #1e4fd7;
+  border-color: #1e4fd7;
+}
+
+/* botão outline */
+.btn--outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 1rem;
+  font-size: 0.86rem;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  background: #ffffff;
+  color: #2563eb;
+  transition: 0.2s;
+}
+.btn--outline:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* botão secundário (cinza neutro) */
+.btn--secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 1rem;
+  font-size: 0.86rem;
+  border-radius: 8px;
+  border: 1px solid #d4d7da;
+  background: #ffffff;
+  color: #555;
+  transition: 0.2s;
+}
+.btn--secondary:hover {
+  background: #f3f4f6;
+}
+
+/* botão menor para tabelas */
+.btn--table,
+.btn-tabela {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #dfe2e5;
+  background: #f1f3f4;
+  transition: 0.15s;
+  color: #333;
+}
+.btn--table:hover,
+.btn-tabela:hover {
+  background: #e7eaed;
+}
+
+
+/* ============================================================
+   3. AVATAR / USUÁRIO
+------------------------------------------------------------ */
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563eb33;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.topbar-user-name {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+
+
+/* ============================================================
+   4. TAGS / CHIPS / BADGES
+------------------------------------------------------------ */
+
+.tag-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tag-plano {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+.tag-ativo {
+  background: #e5f7ef;
+  color: #166534;
+  border-color: #b0ebce;
+}
+.tag-inativo {
+  background: #fdeaea;
+  color: #b91c1c;
+  border-color: #f7c2c2;
+}
+
+.dot {
+  margin: 0 0.3rem;
+}
+
+
+/* ---- Chips rápidas (Evolução, Atalhos) ---- */
+
+.chip-button {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.chip-button:hover {
+  background: #e5e7eb;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+
+
+/* ============================================================
+   5. MENSAGENS / STATUS
+------------------------------------------------------------ */
+
+.mensagem-status {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 0.55rem 0.8rem;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+
+
+/* ============================================================
+   6. GRIDS AUXILIARES
+------------------------------------------------------------ */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* ============================================================
+   7. CARDS GERAIS
+------------------------------------------------------------ */
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid #e1e4e8;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.04),
+    0 8px 18px rgba(0,0,0,0.06);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-header-left h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.card-header-left small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+
+
+/* ============================================================
+   8. SELECT SIMPLES
+------------------------------------------------------------ */
+
+.select-simple {
+  min-height: 32px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.select-simple:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+
+
+/* ============================================================
+   9. SEARCH BOX (Topbar)
+------------------------------------------------------------ */
+
+.search-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  transition: 0.15s ease;
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+}
+
+.search-box:focus-within {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+
+.search-icon {
+  font-size: 0.9rem;
+}
+
+
+/* ============================================================
+   10. TIMELINE (PRONTUÁRIO)
+------------------------------------------------------------ */
+
+.timeline {
+  position: relative;
+  margin-left: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  bottom: 0.2rem;
+  left: 0.5rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(15,23,42,0.12),
+    rgba(15,23,42,0.04)
+  );
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -0.1rem;
+  top: 0.75rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #0f766e;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+.timeline-content {
+  margin-left: 1rem;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+  width: 100%;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.timeline-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+/* badges por tipo */
+
+.badge-evolucao {
+  background: #ecfdf3;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.badge-receita {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.badge-exame {
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef3c7;
+}
+.badge-laudo {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+.badge-atestado {
+  background: #ecfeff;
+  color: #155e75;
+  border: 1px solid #a5f3fc;
+}
+.badge-comparecimento {
+  background: #fdf2f8;
+  color: #9d174d;
+  border: 1px solid #f9a8d4;
+}
+.badge-encaminhamento {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.timeline-date {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.timeline-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-text {
+  font-size: 0.85rem;
+  color: #4b5563;
+  white-space: pre-line;
+}

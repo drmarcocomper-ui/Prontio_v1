@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>PRONTIO – Atestado Médico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE GLOBAL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS Único do Sistema ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css">
+
+  <!-- CSS do módulo -->
+  <link rel="stylesheet" href="../assets/css/modules/atestado.css">
+
+  <!-- ======================= JS Base do PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS do Módulo =============================== -->
+  <script src="../assets/js/modules/atestado.js" defer></script>
+</head>
+
+<body data-page="atestado">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP DO MENU MOBILE ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- ========================== TOPBAR ========================== -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Atestado Médico</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ======================== CONTEÚDO INTERNO ======================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Atestado do Paciente</h1>
+        <p class="page-subtitle">
+          Gere, salve e imprima atestados para o paciente selecionado.
+        </p>
+
+        <!-- ======================== CARD: DADOS DO PACIENTE ======================== -->
+        <section class="card paciente-box">
+          <p><strong>Paciente:</strong> <span id="pacienteNome">—</span></p>
+          <p><strong>ID:</strong> <span id="pacienteID">—</span></p>
+          <p><strong>Telefone:</strong> <span id="pacienteTelefone">—</span></p>
+        </section>
+
+        <!-- ======================== FORM DE ATESTADO ======================== -->
+        <section class="card">
+
+          <h2 class="page-section-title">Novo Atestado</h2>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="atestadoData">Data / Hora</label>
+              <input type="datetime-local" id="atestadoData">
+            </div>
+
+            <div class="campo">
+              <label for="tipoAtestado">Finalidade</label>
+              <select id="tipoAtestado">
+                <option value="trabalho">Trabalho</option>
+                <option value="escola">Escola / curso</option>
+                <option value="atividade_fisica">Atividade física</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="diasAfastamento">Dias de afastamento</label>
+              <input type="number" id="diasAfastamento" min="0" step="1" placeholder="Ex.: 3">
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="campo">
+              <label for="cidAtestado">CID (opcional)</label>
+              <input type="text" id="cidAtestado" placeholder="Ex.: N40, M54…">
+            </div>
+
+            <div class="campo">
+              <label for="inicioAfastamento">Início do afastamento</label>
+              <input type="date" id="inicioAfastamento">
+            </div>
+          </div>
+
+          <p class="text-helper">
+            Você pode editar o texto livremente antes de salvar ou imprimir.
+          </p>
+
+          <div class="campo">
+            <label for="atestadoTexto">Texto do atestado</label>
+            <textarea id="atestadoTexto" rows="8"
+              placeholder="Texto do atestado a ser apresentado ao empregador/escola…"></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="atestadoObs">Observações internas (não aparecem no PDF)</label>
+            <textarea id="atestadoObs" rows="3"></textarea>
+          </div>
+
+          <div class="campo checkbox-inline">
+            <label>
+              <input type="checkbox" id="flagAtestadoCurto">
+              Atestado simples (consulta / retorno)
+            </label>
+          </div>
+
+          <div class="acoes-form">
+            <button type="button" class="btn btn-primary" id="btnSalvarAtestado">
+              Salvar atestado
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnImprimirAtestado">
+              Imprimir atestado
+            </button>
+          </div>
+
+        </section>
+
+        <!-- ======================== HISTÓRICO ======================== -->
+        <section class="card">
+          <h2 class="page-section-title">Histórico de atestados</h2>
+          <div id="historicoAtestados"></div>
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+</body>
+</html>

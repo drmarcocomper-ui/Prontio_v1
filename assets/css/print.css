@@ -1,0 +1,40 @@
+/* ============================================================
+   PRONTIO – PRINT MODE
+============================================================ */
+
+@media print {
+
+  .sidebar,
+  .topbar,
+  .btn-primario,
+  .btn-terciario,
+  .actions-row,
+  .filters-advanced,
+  .filters-row {
+    display: none !important;
+  }
+
+  .layout,
+  .main,
+  .content {
+    padding: 0;
+    margin: 0;
+    width: 100% !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .card,
+  .prontuario-card {
+    border: 1px solid black;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}

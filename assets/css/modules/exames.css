@@ -1,0 +1,130 @@
+/* CSS específico do módulo EXAMES */
+
+/* Caixa com dados do paciente */
+.paciente-box {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.paciente-box p {
+  margin: 0.1rem 0;
+}
+
+.paciente-box strong {
+  font-weight: 600;
+}
+
+/* Grids do formulário de exames */
+.exames-solicitacao-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.exames-header-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Texto de ajuda abaixo dos campos */
+.texto-ajuda {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0.75rem;
+}
+
+/* Flags (urgente, etc.) */
+.exame-flags {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+/* Botões de ação do bloco de exames */
+.botoes-acao {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Mensagem de feedback */
+.mensagem {
+  margin-top: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.mensagem.sucesso {
+  background: #ecfdf3;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.mensagem.erro {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Histórico de exames */
+#historicoExames {
+  font-size: 0.9rem;
+}
+
+.exame-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.exame-item:last-child {
+  border-bottom: none;
+}
+
+.exame-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exame-item-header span {
+  font-weight: 500;
+}
+
+.exame-item-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .exames-header-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .exames-solicitacao-grid,
+  .exames-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .botoes-acao {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

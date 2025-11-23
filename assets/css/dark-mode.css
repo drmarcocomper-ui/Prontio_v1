@@ -1,0 +1,35 @@
+/* ============================================================
+   PRONTIO – Dark Mode
+============================================================ */
+
+html.dark {
+  --color-bg: #0d1117;
+  --color-panel: #161b22;
+  --color-border: #30363d;
+  --color-text: #e6edf3;
+  --color-text-soft: #a4b1c0;
+  --sidebar-bg: #010409;
+  --topbar-bg: #161b22;
+}
+
+html.dark body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+html.dark .sidebar { background: var(--sidebar-bg); }
+html.dark .topbar { background: var(--topbar-bg); }
+
+html.dark .card,
+html.dark .prontuario-card {
+  background: var(--color-panel);
+  border-color: var(--color-border);
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background: #0f172a;
+  border-color: #334155;
+  color: var(--color-text);
+}

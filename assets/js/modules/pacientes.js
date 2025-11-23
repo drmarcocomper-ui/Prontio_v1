@@ -1,0 +1,363 @@
+/******************************************************
+ * PRONTIO – Módulo: Pacientes
+ * Controle completo da tela de pacientes:
+ * - listagem
+ * - filtros
+ * - drawer (novo/editar)
+ * - salvar
+ * - envio para prontuário
+ *
+ * Arquitetura nova:
+ * PRONTIO.Modules.Pacientes.init()
+ *
+ * Compatibilidade:
+ * Nenhuma função antiga quebra.
+ ******************************************************/
+
+window.PRONTIO = window.PRONTIO || {};
+PRONTIO.Modules = PRONTIO.Modules || {};
+
+PRONTIO.Modules.Pacientes = (() => {
+
+  /* ============================================================
+     ESTADO
+  ============================================================ */
+
+  let pacientesCache = [];
+
+  /* ============================================================
+     STORAGE — salva paciente para módulo prontuário
+  ============================================================ */
+
+  function salvarSelecionado(p) {
+    if (!p) return;
+
+    const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
+
+    const obj = {
+      id: p.ID_Paciente,
+      nome: p.NomePaciente,
+      telefone: p.Telefone1 || p.Telefone2 || "",
+      idade: idade || "",
+      plano: p.PlanoSaude || "",
+      alergias: p.Alergias || "",
+      medicacoes: p.MedicacoesEmUso || "",
+      doencas: p.DoencasCronicas || "",
+      dataNascimento: p.DataNascimento || "",
+    };
+
+    PRONTIO.Storage.salvarPacienteSelecionado(obj);
+  }
+
+  /* ============================================================
+     API — Pacientes
+  ============================================================ */
+
+  async function carregarPacientes() {
+    try {
+      const data = await PRONTIO.API.Pacientes.listar();
+      pacientesCache = data.pacientes || [];
+      renderizarLista();
+    } catch (e) {
+      console.error(e);
+      PRONTIO.UI.showToast("Erro ao carregar pacientes: " + e.message, "erro");
+    }
+  }
+
+  function montarDoForm() {
+    return {
+      ID_Paciente: PRONTIO.Forms.getValue("idPaciente") || null,
+      NomePaciente: PRONTIO.Forms.getValue("nomePaciente"),
+      DataNascimento: PRONTIO.Forms.getValue("dataNascimento"),
+      Sexo: PRONTIO.Forms.getValue("sexo"),
+      CPF: PRONTIO.Forms.getValue("cpf"),
+      RG: PRONTIO.Forms.getValue("rg"),
+      Telefone1: PRONTIO.Forms.getValue("telefone1"),
+      Telefone2: PRONTIO.Forms.getValue("telefone2"),
+      Email: PRONTIO.Forms.getValue("email"),
+      EnderecoRua: PRONTIO.Forms.getValue("enderecoRua"),
+      EnderecoNumero: PRONTIO.Forms.getValue("enderecoNumero"),
+      EnderecoBairro: PRONTIO.Forms.getValue("enderecoBairro"),
+      EnderecoCidade: PRONTIO.Forms.getValue("enderecoCidade"),
+      EnderecoUF: PRONTIO.Forms.getValue("enderecoUF"),
+      EnderecoCEP: PRONTIO.Forms.getValue("enderecoCEP"),
+      Alergias: PRONTIO.Forms.getValue("alergias"),
+      MedicacoesEmUso: PRONTIO.Forms.getValue("medicacoesEmUso"),
+      DoencasCronicas: PRONTIO.Forms.getValue("doencasCronicas"),
+      ObsImportantes: PRONTIO.Forms.getValue("obsImportantes"),
+      PlanoSaude: PRONTIO.Forms.getValue("planoSaude"),
+      NumeroCarteirinha: PRONTIO.Forms.getValue("numeroCarteirinha"),
+      ValidadeCarteirinha: PRONTIO.Forms.getValue("validadeCarteirinha"),
+      Ativo: PRONTIO.Forms.getValue("ativo") || "S",
+    };
+  }
+
+  async function salvarPaciente(irParaProntuario = false) {
+    const paciente = montarDoForm();
+
+    if (!paciente.NomePaciente) {
+      PRONTIO.UI.showToast("Informe o nome do paciente.", "erro");
+      return;
+    }
+
+    try {
+      const data = await PRONTIO.API.Pacientes.salvar(paciente);
+      const salvo = data.paciente;
+
+      PRONTIO.UI.showToast("Paciente salvo com sucesso.");
+
+      const idx = pacientesCache.findIndex(
+        (p) => p.ID_Paciente === salvo.ID_Paciente
+      );
+
+      if (idx >= 0) pacientesCache[idx] = salvo;
+      else pacientesCache.push(salvo);
+
+      preencherFormulario(salvo);
+      renderizarLista();
+
+      if (irParaProntuario) {
+        salvarSelecionado(salvo);
+        window.location.href = "prontuario.html";
+      }
+    } catch (err) {
+      console.error(err);
+      PRONTIO.UI.showToast("Erro ao salvar paciente: " + err.message, "erro");
+    }
+  }
+
+  function irParaProntuarioPorId(idPaciente) {
+    const p = pacientesCache.find((x) => x.ID_Paciente === idPaciente);
+    if (!p) {
+      PRONTIO.UI.showToast("Paciente não encontrado.", "erro");
+      return;
+    }
+
+    salvarSelecionado(p);
+    window.location.href = "prontuario.html";
+  }
+
+  /* ============================================================
+     UI — FORM / DRAWER / LISTA
+  ============================================================ */
+
+  function preencherFormulario(p) {
+    PRONTIO.Forms.setValue("idPaciente", p.ID_Paciente || "");
+    PRONTIO.Forms.setValue("nomePaciente", p.NomePaciente);
+    PRONTIO.Forms.setValue("dataNascimento", p.DataNascimento);
+    PRONTIO.Forms.setValue("sexo", p.Sexo);
+    PRONTIO.Forms.setValue("cpf", p.CPF);
+    PRONTIO.Forms.setValue("rg", p.RG);
+    PRONTIO.Forms.setValue("telefone1", p.Telefone1);
+    PRONTIO.Forms.setValue("telefone2", p.Telefone2);
+    PRONTIO.Forms.setValue("email", p.Email);
+    PRONTIO.Forms.setValue("enderecoRua", p.EnderecoRua);
+    PRONTIO.Forms.setValue("enderecoNumero", p.EnderecoNumero);
+    PRONTIO.Forms.setValue("enderecoBairro", p.EnderecoBairro);
+    PRONTIO.Forms.setValue("enderecoCidade", p.EnderecoCidade);
+    PRONTIO.Forms.setValue("enderecoUF", p.EnderecoUF);
+    PRONTIO.Forms.setValue("enderecoCEP", p.EnderecoCEP);
+    PRONTIO.Forms.setValue("alergias", p.Alergias);
+    PRONTIO.Forms.setValue("medicacoesEmUso", p.MedicacoesEmUso);
+    PRONTIO.Forms.setValue("doencasCronicas", p.DoencasCronicas);
+    PRONTIO.Forms.setValue("obsImportantes", p.ObsImportantes);
+    PRONTIO.Forms.setValue("planoSaude", p.PlanoSaude);
+    PRONTIO.Forms.setValue("numeroCarteirinha", p.NumeroCarteirinha);
+    PRONTIO.Forms.setValue("validadeCarteirinha", p.ValidadeCarteirinha);
+    PRONTIO.Forms.setValue("ativo", p.Ativo || "S");
+
+    const titulo = document.getElementById("tituloFormulario");
+    if (titulo) titulo.textContent = "Editar paciente";
+  }
+
+  function limparFormulario() {
+    const form = document.getElementById("paciente-form");
+    if (form) form.reset();
+
+    PRONTIO.Forms.setValue("idPaciente", "");
+    PRONTIO.Forms.setValue("ativo", "S");
+
+    const titulo = document.getElementById("tituloFormulario");
+    if (titulo) titulo.textContent = "Novo paciente";
+  }
+
+  function renderizarLista() {
+    const div = document.getElementById("listaPacientes");
+    if (!div) return;
+
+    const busca = (PRONTIO.Forms.getValue("buscaPaciente") || "").toLowerCase();
+    const filtro = PRONTIO.Forms.getValue("filtroAtivo") || "S";
+
+    const filtrados = pacientesCache.filter((p) => {
+      if (filtro !== "TODOS" && (p.Ativo || "S") !== filtro) return false;
+      if (busca) {
+        const alvo = `${p.NomePaciente} ${p.CPF} ${p.Telefone1} ${p.Telefone2}`.toLowerCase();
+        if (!alvo.includes(busca)) return false;
+      }
+      return true;
+    });
+
+    filtrados.sort((a, b) =>
+      (a.NomePaciente || "").localeCompare(b.NomePaciente || "", "pt-BR")
+    );
+
+    div.innerHTML = "";
+
+    filtrados.forEach((p) => {
+      const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
+      const iniciais = (p.NomePaciente || "")
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((t) => t[0].toUpperCase())
+        .join("");
+
+      const telefone = p.Telefone1 || p.Telefone2 || "";
+      const plano = p.PlanoSaude || "Sem plano";
+      const cidade = p.EnderecoCidade || "";
+      const uf = p.EnderecoUF || "";
+
+      const infoLinha =
+        telefone && (cidade || uf)
+          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""
+          }`
+          : telefone || cidade || "";
+
+      const statusTag =
+        p.Ativo === "N"
+          ? `<span class="tag-pill tag-inativo">Inativo</span>`
+          : `<span class="tag-pill tag-ativo">Ativo</span>`;
+
+      const card = document.createElement("div");
+      card.className = "paciente-item";
+
+      card.innerHTML = `
+        <div class="paciente-main">
+          <div class="paciente-avatar">${iniciais}</div>
+          <div>
+            <div class="paciente-nome">
+              ${p.NomePaciente || ""}
+              ${idade ? `<span class="paciente-idade">• ${idade} anos</span>` : ""}
+            </div>
+            ${infoLinha ? `<div class="paciente-sec">${infoLinha}</div>` : ""}
+          </div>
+        </div>
+
+        <div class="paciente-tags">
+          <span class="tag-pill tag-plano">${plano}</span>
+          ${statusTag}
+        </div>
+
+        <div class="paciente-actions">
+          <button class="btn-primario" data-acao="prontuario" data-id="${p.ID_Paciente}">
+            Prontuário
+          </button>
+          <button class="btn-tabela" data-acao="editar" data-id="${p.ID_Paciente}">
+            Editar
+          </button>
+        </div>
+      `;
+
+      div.appendChild(card);
+    });
+  }
+
+  /* ============================================================
+     EVENTOS / DRAWER
+  ============================================================ */
+
+  function registrarEventos() {
+    const painel = document.getElementById("painelPaciente");
+    const backdrop = document.getElementById("backdropPaciente");
+    const tituloForm = document.getElementById("tituloFormulario");
+
+    const abrirDrawer = function (modo) {
+      if (tituloForm) {
+        tituloForm.textContent =
+          modo === "editar" ? "Editar paciente" : "Novo paciente";
+      }
+      painel.classList.add("aberto");
+      backdrop.classList.add("visivel");
+    };
+
+    const fecharDrawer = function () {
+      painel.classList.remove("aberto");
+      backdrop.classList.remove("visivel");
+    };
+
+    document.getElementById("btnFecharDrawer")?.addEventListener("click", fecharDrawer);
+    backdrop?.addEventListener("click", fecharDrawer);
+
+    document.getElementById("btnNovoPaciente")?.addEventListener("click", () => {
+      limparFormulario();
+      abrirDrawer("novo");
+    });
+
+    document.getElementById("btnCancelarEdicao")?.addEventListener("click", limparFormulario);
+
+    document.getElementById("btnSalvarIrProntuario")?.addEventListener("click", () => {
+      salvarPaciente(true);
+    });
+
+    const form = document.getElementById("paciente-form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        salvarPaciente(false);
+      });
+    }
+
+    const lista = document.getElementById("listaPacientes");
+    if (lista) {
+      lista.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-acao]");
+        if (!btn) return;
+
+        const acao = btn.dataset.acao;
+        const id = btn.dataset.id;
+
+        if (acao === "editar") {
+          const p = pacientesCache.find((x) => x.ID_Paciente === id);
+          if (p) {
+            preencherFormulario(p);
+            abrirDrawer("editar");
+          }
+        } else if (acao === "prontuario") {
+          irParaProntuarioPorId(id);
+        }
+      });
+    }
+
+    const buscaEl = document.getElementById("buscaPaciente");
+    if (buscaEl) {
+      buscaEl.addEventListener("input", renderizarLista);
+      buscaEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          renderizarLista();
+        }
+      });
+    }
+
+    document.getElementById("filtroAtivo")?.addEventListener("change", renderizarLista);
+  }
+
+  /* ============================================================
+     INICIALIZAÇÃO
+  ============================================================ */
+
+  function init() {
+    carregarPacientes();
+    registrarEventos();
+  }
+
+  /* API do módulo */
+  return {
+    init,
+  };
+})();
+
+/* ============================================================
+   WRAPPER DE COMPATIBILIDADE (para HTML antigo)
+============================================================ */
+window.Pacientes = PRONTIO.Modules.Pacientes;

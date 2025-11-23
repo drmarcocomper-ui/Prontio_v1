@@ -1,0 +1,118 @@
+/* ============================================================
+   FORMS.CSS – CAMPOS E FORMULÁRIOS GLOBAIS DO PRONTIO
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Campo base
+------------------------------------------------------------ */
+
+.campo {
+  margin-bottom: 1rem;
+}
+
+.campo label {
+  display: block;
+  font-size: 0.8rem;
+  color: #4b4f55;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.campo-control {
+  position: relative;
+}
+
+/* Inputs, selects e textareas padrão */
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #d2d5db;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  background: #ffffff;
+  color: #111827;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.08s ease;
+}
+
+.campo input::placeholder,
+.campo select::placeholder,
+.campo textarea::placeholder {
+  color: #9ca3af;
+}
+
+.campo input:hover,
+.campo select:hover,
+.campo textarea:hover {
+  border-color: #c2c6d0;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  background-color: #ffffff;
+  transform: translateY(-0.5px);
+}
+
+.campo input:disabled,
+.campo select:disabled,
+.campo textarea:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+/* Textarea (altura mínima e resize) */
+.campo textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Hint abaixo do campo */
+.campo .campo-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* ------------------------------------------------------------
+   Estados de erro
+------------------------------------------------------------ */
+
+.campo.campo-erro input,
+.campo.campo-erro select,
+.campo.campo-erro textarea {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+}
+
+.campo.campo-erro label {
+  color: #b91c1c;
+}
+
+.campo .campo-erro-msg {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #b91c1c;
+}
+
+/* ------------------------------------------------------------
+   Responsividade leve para campos
+------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+  .campo {
+    margin-bottom: 0.85rem;
+  }
+}

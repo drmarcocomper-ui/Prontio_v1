@@ -1,0 +1,109 @@
+/* ============================================================
+   PRONTIO – Receita
+   Estilos específicos da página receita.html
+============================================================ */
+
+/* GRID PRINCIPAL */
+.receita-main {
+  max-width: 1120px;
+  margin: 0 auto 2rem;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+/* FORMULÁRIO */
+.receita-card-form {
+  background: var(--color-panel);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.receita-card-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.receita-paciente-box {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  background: #f9fafb;
+  margin-bottom: 1rem;
+}
+
+/* LISTA DE MEDICAMENTOS */
+.receita-medicamentos-header {
+  margin: 1rem 0 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receita-medicamentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.receita-item {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+}
+
+/* AÇÕES */
+.receita-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* PREVIEW */
+.receita-card-preview {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.receita-preview-sheet {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  min-height: 500px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+.receita-preview-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.receita-preview-itens li {
+  margin-bottom: 0.35rem;
+}
+
+.receita-preview-footer {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+}
+
+/* RESPONSIVO */
+@media (max-width: 900px) {
+  .receita-main {
+    grid-template-columns: 1fr;
+  }
+}

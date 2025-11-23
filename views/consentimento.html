@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>PRONTIO – Consentimento Informado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE GLOBAL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS Único do Sistema ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+  <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/consentimento.css">
+
+  <!-- ======================= JS BASE DO PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS do Módulo =============================== -->
+  <script src="../assets/js/modules/consentimento.js" defer></script>
+</head>
+
+<body data-page="consentimento">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA PELO LOADER) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP MOBILE ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- ========================== TOPO ========================== -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Consentimento Informado</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========================== CONTEÚDO INTERNO ========================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Consentimento informado</h1>
+        <p class="page-subtitle">
+          Preencha, salve e imprima termos de consentimento para os procedimentos do paciente.
+        </p>
+
+        <!-- DADOS DO PACIENTE -->
+        <section class="card paciente-box">
+          <p><strong>Paciente:</strong> <span id="pacienteNome">–</span></p>
+          <p><strong>ID:</strong> <span id="pacienteID">–</span></p>
+          <p><strong>Telefone:</strong> <span id="pacienteTelefone">–</span></p>
+        </section>
+
+        <!-- FORMULÁRIO PRINCIPAL -->
+        <section class="card">
+
+          <h2 class="page-section-title">Novo consentimento</h2>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="consData">Data e hora</label>
+              <input type="datetime-local" id="consData">
+            </div>
+
+            <div class="campo">
+              <label for="consTipo">Tipo de consentimento</label>
+              <select id="consTipo"></select>
+            </div>
+
+            <div class="campo">
+              <label for="consLocal">Local do procedimento</label>
+              <input
+                type="text"
+                id="consLocal"
+                placeholder="Ex.: Instituto de Urologia, Hospital X..."
+              >
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="campo">
+              <label for="consProcedimento">Procedimento</label>
+              <input
+                type="text"
+                id="consProcedimento"
+                placeholder="Ex.: Vasectomia, Ureterolitotripsia..."
+              >
+            </div>
+
+            <div class="campo">
+              <label for="consCID">CID principal (opcional)</label>
+              <input type="text" id="consCID" placeholder="Ex.: N20, N40, C61...">
+            </div>
+          </div>
+
+          <p class="text-helper">
+            Selecione um tipo de consentimento para carregar um modelo. Ajuste o texto abaixo antes de salvar/imprimir.
+          </p>
+
+          <div class="campo">
+            <label for="consTexto">Texto do consentimento</label>
+            <textarea
+              id="consTexto"
+              rows="10"
+              placeholder="Texto completo do consentimento informado..."
+            ></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="consObs">Observações internas (opcional)</label>
+            <textarea
+              id="consObs"
+              rows="3"
+              placeholder="Observações internas não impressas..."
+            ></textarea>
+          </div>
+
+          <div class="campo checkbox-inline">
+            <label>
+              <input type="checkbox" id="consAssinado">
+              Paciente assinou o documento físico/digital
+            </label>
+          </div>
+
+          <div class="acoes-form">
+            <button type="button" class="btn btn-primary" id="btnSalvarConsentimento">
+              Salvar consentimento
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnImprimirConsentimento">
+              Imprimir documento
+            </button>
+          </div>
+
+        </section>
+
+        <!-- HISTÓRICO -->
+        <section class="card">
+          <h2 class="page-section-title">Histórico de consentimentos</h2>
+          <div id="historicoConsentimento"></div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

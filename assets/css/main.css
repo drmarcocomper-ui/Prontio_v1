@@ -1,0 +1,53 @@
+/* 
+  main.css
+  =========
+  Arquivo central de estilos do PRONTIO.
+  Aqui apenas organizamos a ordem dos imports.
+  Cada CSS continua separado, mantendo o código limpo e modular.
+*/
+
+/* ============================================================
+   1. BASE DO SISTEMA (sempre primeiro)
+   ============================================================ */
+
+@import url("./global.css");       /* Reset + comportamentos globais */
+@import url("./variables.css");    /* Tokens globais: cores, espaçamentos, fontes */
+@import url("./utilities.css");    /* Classes utilitárias: .flex, .grid, .mt-1 */
+@import url("./animations.css");   /* Animações globais */
+
+/* ============================================================
+   2. LAYOUT E COMPONENTES COMPARTILHADOS
+   ============================================================ */
+
+@import url("./layout.css");       /* Estrutura geral: .app, sidebar, conteúdo */
+@import url("./forms.css");        /* Inputs, selects, textarea, campo, grids */
+@import url("./components.css");   /* Botões, cards, tabelas, badges, modais */
+
+/* ============================================================
+   3. MÓDULOS (páginas principais do sistema)
+   ============================================================ */
+
+@import url("./modules/pacientes.css");
+@import url("./modules/agenda.css");
+@import url("./modules/evolucao.css");
+@import url("./modules/encaminhamento.css");
+@import url("./modules/receita.css");
+@import url("./modules/exames.css");
+@import url("./modules/laudo.css");
+@import url("./modules/atestado.css");
+@import url("./modules/comparecimento.css");
+@import url("./modules/sadt.css");
+@import url("./modules/consentimento.css");
+@import url("./modules/prontuario.css");  /* timeline do prontuário */
+
+/* ============================================================
+   4. TEMA (modo escuro)
+   ============================================================ */
+
+@import url("./dark-mode.css");
+
+/* ============================================================
+   5. IMPRESSÃO (PDF / impressoras)
+   ============================================================ */
+
+@import url("./print.css");

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRONTIO - Header</title>
+
+    <!-- CSS de layout global (topbar + sidebar + conteúdo) -->
+    <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+    <!--
+        HEADER / TOPBAR PRINCIPAL DO PRONTIO
+        Este mesmo bloco deve ser copiado para as páginas principais (pacientes.html, agenda.html, etc.)
+    -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <!-- Botão para abrir/fechar a sidebar (funciona junto com layout.js) -->
+            <button id="btnToggleSidebar" class="btn-icon" aria-label="Alternar menu lateral">
+                <!-- Ícone simples de "hamburger" usando spans -->
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Título da página – pode ser alterado dinamicamente em cada tela -->
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <span class="page-subtitle">Bem-vindo ao PRONTIO</span>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <!-- Campo de busca (opcional) -->
+            <div class="topbar-search">
+                <input type="text" id="topbarSearchInput" placeholder="Buscar paciente, exame, receita..." />
+            </div>
+
+            <!-- Informações do médico / usuário -->
+            <div class="topbar-user">
+                <div class="user-info">
+                    <span class="user-name">Dr. Marco Antônio Comper</span>
+                    <span class="user-role">CRM 00000</span>
+                </div>
+                <button id="btnUserMenu" class="user-avatar" aria-label="Abrir menu do usuário">
+                    <!-- Letra inicial como avatar simples -->
+                    <span>M</span>
+                </button>
+
+                <!-- Menu do usuário (controlado por layout.js) -->
+                <div id="userDropdown" class="user-dropdown">
+                    <button class="dropdown-item" data-action="perfil">Meu Perfil</button>
+                    <button class="dropdown-item" data-action="config">Configurações</button>
+                    <button class="dropdown-item" data-action="sair">Sair</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo de exemplo apenas para visualização do header -->
+    <main class="main-content">
+        <div class="content-card">
+            <h2>Conteúdo de Exemplo</h2>
+            <p>
+                Este arquivo serve como referência visual da barra superior (header / topbar) do PRONTIO.
+                Nas páginas reais (pacientes, agenda, etc.), você deve reutilizar o mesmo <code>&lt;header&gt;</code>
+                e o mesmo CSS/JS de layout.
+            </p>
+        </div>
+    </main>
+
+    <!-- JS de layout global -->
+    <script src="assets/js/layout.js"></script>
+</body>
+</html>

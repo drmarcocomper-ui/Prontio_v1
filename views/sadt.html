@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PRONTIO – SADT / Internação</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE INTER -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- CSS PRINCIPAL -->
+  <link rel="stylesheet" href="../assets/css/main.css">
+
+  <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/sadt.css">
+
+  <!-- JS CORE -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+ <!-- JS do módulo -->
+  <script src="../assets/js/modules/sadt.js" defer></script>
+
+</head>
+
+<body data-page="sadt">
+
+  <div class="app">
+
+    <!-- SIDEBAR (injetada automaticamente) -->
+    <div id="sidebar"></div>
+
+    <!-- BACKDROP MOBILE -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- CONTEÚDO -->
+    <div class="app-content">
+
+      <!-- ========================== TOPBAR ========================== -->
+      <header class="topbar">
+
+        <div class="topbar-left">
+          <!-- Hambúrguer -->
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">SADT / Solicitação de Internação</h1>
+        </div>
+
+        <div class="topbar-right">
+
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <!-- Avatar -->
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <!-- Dropdown -->
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- ========================== CONTEÚDO INTERNO ========================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Guia SADT / Internação</h1>
+
+        <!-- Dados do paciente -->
+        <section class="card paciente-box">
+          <p><strong>Paciente:</strong> <span id="pacienteNome">–</span></p>
+          <p><strong>ID:</strong> <span id="pacienteID">–</span></p>
+          <p><strong>Telefone:</strong> <span id="pacienteTelefone">–</span></p>
+        </section>
+
+        <!-- ========================== FORMULÁRIO PRINCIPAL ========================== -->
+        <section class="card">
+          <h2>Nova solicitação</h2>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="sadtData">Data da solicitação</label>
+              <input type="datetime-local" id="sadtData">
+            </div>
+
+            <div class="campo">
+              <label for="sadtTipoGuia">Tipo de guia</label>
+              <select id="sadtTipoGuia">
+                <option value="SADT">SADT ambulatorial</option>
+                <option value="INTERNACAO">Solicitação de internação</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="sadtConvenio">Convênio / Plano</label>
+              <input type="text" id="sadtConvenio" placeholder="Ex.: Unimed, Cassi, particular...">
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="sadtPrestador">Hospital / Clínica</label>
+              <input type="text" id="sadtPrestador" placeholder="Ex.: Instituto de Urologia, Hospital X...">
+            </div>
+
+            <div class="campo">
+              <label for="sadtTipoLeito">Tipo de leito (internação)</label>
+              <select id="sadtTipoLeito">
+                <option value="">Não se aplica</option>
+                <option value="enfermaria">Enfermaria</option>
+                <option value="apartamento">Apartamento</option>
+                <option value="dia">Hospital-dia</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="sadtCID">CID principal (opcional)</label>
+              <input type="text" id="sadtCID" placeholder="Ex.: N20, C61...">
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="sadtProcedimento">Procedimento(s) solicitado(s)</label>
+            <textarea id="sadtProcedimento" rows="4"
+              placeholder="Ex.: Prostatectomia radical robótica, ureterolitotripsia, RTU de próstata..."></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="sadtDetalhes">Detalhes / justificativa clínica</label>
+            <textarea id="sadtDetalhes" rows="5"
+              placeholder="Indicação clínica, resumo da história, exames prévios, risco cirúrgico..."></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="sadtObs">Observações internas (opcional)</label>
+            <textarea id="sadtObs" rows="3"
+              placeholder="Observações internas (não necessariamente impressas)..."></textarea>
+          </div>
+
+          <div class="acoes-form">
+            <button type="button" class="btn btn-primary" id="btnSalvarSadt">
+              Salvar solicitação
+            </button>
+
+            <button type="button" class="btn btn-secondary" id="btnImprimirSadt">
+              Imprimir guia
+            </button>
+          </div>
+
+        </section>
+
+        <!-- ========================== HISTÓRICO ========================== -->
+        <section class="card">
+          <h2>Histórico de SADT / Internações</h2>
+          <div id="historicoSadt"></div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- JS do módulo -->
+  <script src="../assets/js/modules/sadt.js"></script>
+
+</body>
+</html>

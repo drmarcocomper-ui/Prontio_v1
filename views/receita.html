@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Receita</title>
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- CSS GLOBAL -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+    <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/receita.css">
+
+  <!-- JS CORE -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+ <!-- JS do módulo -->
+  <script src="../assets/js/modules/receita.js" defer></script>
+
+</head>
+
+<body data-page="receita">
+
+  <div class="app">
+
+    <!-- SIDEBAR (INJETADA PELO LOADER) -->
+    <div id="sidebar"></div>
+
+    <!-- BACKDROP MOBILE -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="app-content">
+
+      <!-- ==========================  TOPBAR  ========================== -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Receita Médica</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ==========================  CONTEÚDO  ========================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Receita</h1>
+        <p class="page-subtitle">
+          Preencha a receita, visualize o documento final e imprima.
+        </p>
+
+        <div class="receita-main">
+
+          <!-- ================== CARD ESQUERDO — FORMULÁRIO ================== -->
+          <section class="card receita-card-form">
+
+            <div class="receita-card-form-header">
+              <div>
+                <h2>Dados da receita</h2>
+                <p class="subtitle">As informações do paciente vêm do prontuário.</p>
+              </div>
+
+              <button type="button" class="btn btn-secondary" id="btnVoltarProntuario">
+                ← Voltar ao Prontuário
+              </button>
+            </div>
+
+            <!-- Dados do paciente -->
+            <div class="receita-paciente-box">
+              <div class="receita-paciente-nome" id="recNomePaciente">
+                Paciente não selecionado
+              </div>
+              <div class="receita-paciente-extra" id="recDadosPaciente">
+                ID: — • Idade: — • Telefone: —
+              </div>
+            </div>
+
+            <input type="hidden" id="recIdPaciente">
+
+            <div class="grid-3">
+              <div class="campo">
+                <label for="recData">Data da receita</label>
+                <input type="date" id="recData">
+              </div>
+              <div class="campo">
+                <label for="recTipo">Tipo de receita</label>
+                <select id="recTipo">
+                  <option value="simples">Simples</option>
+                  <option value="especial">Controle especial</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label for="recObsGerais">Observações gerais</label>
+                <input type="text" id="recObsGerais" placeholder="Opcional">
+              </div>
+            </div>
+
+            <!-- Lista de medicamentos -->
+            <div class="receita-medicamentos-header">
+              <h3>Medicamentos</h3>
+              <button type="button" class="btn btn-primary btn-sm" id="btnAdicionarItem">
+                + Adicionar
+              </button>
+            </div>
+
+            <div class="receita-medicamentos-list" id="listaItensReceita"></div>
+
+            <!-- Ações do formulário -->
+            <div class="receita-actions">
+              <button class="btn btn-secondary" id="btnLimparReceita">Limpar</button>
+              <button class="btn btn-secondary" id="btnPréVisualizar">Atualizar</button>
+              <button class="btn btn-primary" id="btnSalvarImprimir">Salvar e imprimir</button>
+            </div>
+
+          </section>
+
+          <!-- ================== CARD DIREITO — PREVIEW ================== -->
+          <section class="card receita-card-preview">
+
+            <div class="receita-preview-sheet" id="previewReceita">
+
+              <div class="receita-preview-header">
+                <h3 id="prevNomeMedico">Dr. Marco Antônio Comper</h3>
+                <small id="prevDadosMedico">
+                  CRM-ES 8190 • Urologia – Vitória / Vila Velha – ES
+                </small>
+              </div>
+
+              <div class="receita-preview-paciente">
+                <strong>Paciente:</strong> <span id="prevNomePaciente">—</span><br>
+                <strong>Data:</strong> <span id="prevData">—</span>
+              </div>
+
+              <ol class="receita-preview-itens" id="prevListaItens"></ol>
+
+              <div class="receita-preview-footer">
+                _____________________________________________<br>
+                <span id="prevAssinatura">Assinatura e carimbo do médico</span>
+              </div>
+
+            </div>
+
+          </section>
+
+        </div>
+
+      </main>
+
+    </div> <!-- /app-content -->
+
+  </div> <!-- /app -->
+
+  <!-- ================== JS DO MÓDULO ================== -->
+  <script src="../assets/js/modules/receita.js"></script>
+
+</body>
+</html>

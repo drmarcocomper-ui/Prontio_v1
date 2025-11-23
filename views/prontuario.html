@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Prontuário</title>
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- ======================= GOOGLE FONTS (Inter) ======================= -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS ÚNICO DO SISTEMA ======================== -->
+  <!-- IMPORTANTE: esta página está em /views → usar ../ -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+  <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/prontuario.css">
+
+  <!-- ======================= JS BASE DO PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS ESPECÍFICO DO MÓDULO ==================== -->
+  <script src="../assets/js/modules/prontuario.js" defer></script>
+</head>
+
+<body data-page="prontuario">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP MENU MOBILE ======================= -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Prontuário</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTEÚDO INTERNO -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Prontuário do Paciente</h1>
+        <p class="page-subtitle">
+          Linha do tempo clínica do paciente selecionado: evoluções, receitas, exames e documentos.
+        </p>
+
+        <div class="prontuario-main">
+
+          <!-- CARD ESQUERDO: dados do paciente + ações rápidas -->
+          <section class="card prontuario-card prontuario-card-esquerda">
+
+            <div class="prontuario-card-header">
+              <div>
+                <h2>Dados do paciente</h2>
+                <p class="subtitle">
+                  Informações principais do paciente selecionado.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="window.location.href='pacientes.html'">
+                ← Voltar para Pacientes
+              </button>
+            </div>
+
+            <div class="patient-header">
+              <div class="patient-info">
+                <h3 id="nomePaciente">Paciente não selecionado</h3>
+                <p id="idPaciente" class="patient-meta">ID: —</p>
+                <p id="dadosPacienteComplementares" class="patient-meta">
+                  Telefone: — | Idade: — 
+                </p>
+              </div>
+            </div>
+
+            <div class="quick-actions">
+              <h3>Ações rápidas</h3>
+              <div class="quick-actions-grid">
+                <button class="btn btn-primary btn-action" id="btnNovaEvolucao">
+                  Nova Evolução
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovaReceita">
+                  Nova Receita
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovoExame">
+                  Pedido de Exame
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovoLaudo">
+                  Novo Laudo
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovoAtestado">
+                  Novo Atestado
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovaDeclaracao">
+                  Declaração de Comparecimento
+                </button>
+                <button class="btn btn-primary btn-action" id="btnNovoEncaminhamento">
+                  Encaminhamento
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- CARD DIREITO: filtros + timeline -->
+          <section class="card prontuario-card prontuario-card-direita">
+
+            <div class="prontuario-card-header">
+              <div>
+                <h2>Histórico do paciente</h2>
+                <p class="subtitle">
+                  Registros do mais recente para o mais antigo.
+                </p>
+              </div>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="timeline-filters">
+
+              <div class="filters-row">
+                <button class="filter-btn active" data-filter="todos">Todos</button>
+                <button class="filter-btn" data-filter="evolucao">Evoluções</button>
+                <button class="filter-btn" data-filter="receita">Receitas</button>
+                <button class="filter-btn" data-filter="exame">Exames</button>
+                <button class="filter-btn" data-filter="laudo">Laudos</button>
+                <button class="filter-btn" data-filter="atestado">Atestados</button>
+                <button class="filter-btn" data-filter="comparecimento">Comparecimentos</button>
+                <button class="filter-btn" data-filter="encaminhamento">Encaminhamentos</button>
+              </div>
+
+              <div class="filters-advanced">
+                <div class="filters-advanced-left">
+                  <input
+                    type="text"
+                    id="filtroTexto"
+                    placeholder="Filtrar por texto (ex.: febre, PSA, laudo...)"
+                  >
+
+                  <label class="filters-date">
+                    De:
+                    <input type="date" id="filtroDataDe">
+                  </label>
+
+                  <label class="filters-date">
+                    Até:
+                    <input type="date" id="filtroDataAte">
+                  </label>
+                </div>
+
+                <div class="filters-advanced-right">
+                  <button type="button" id="btnLimparFiltros" class="btn btn-secondary">
+                    Limpar filtros
+                  </button>
+                  <button
+                    type="button"
+                    id="btnImprimirHistorico"
+                    class="btn btn-secondary">
+                    Imprimir histórico
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TIMELINE -->
+            <section class="timeline-section">
+              <div id="timelineContainer" class="timeline">
+                <!-- itens via JS -->
+              </div>
+
+              <p id="timelineEmptyMessage" class="timeline-empty">
+                Paciente não selecionado.
+              </p>
+            </section>
+
+          </section>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+</body>
+</html>

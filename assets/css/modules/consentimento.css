@@ -1,0 +1,192 @@
+/* ================================
+   CONSENTIMENTO – PRONTIO
+================================ */
+
+.content {
+  margin-left: 220px;
+  padding: 90px 30px 40px;
+}
+
+/* Título */
+.page-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Caixa paciente */
+.paciente-box {
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 6px;
+  border: 1px solid #e1e1e1;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* Card padrão */
+.card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid #e1e1e1;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Grades de cabeçalho */
+.cons-header-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1.2fr;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.texto-ajuda {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* Flags */
+.cons-flags {
+  margin-top: 10px;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+/* Botões de ação */
+.botoes-acao {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 12px;
+  background: #516082;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+  transition: background .2s ease;
+}
+
+.btn-primary:hover {
+  background: #3d4b62;
+}
+
+.btn-outline {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  color: #516082;
+  border: 1px solid #516082;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+  transition: background .2s ease, color .2s ease;
+}
+
+.btn-outline:hover {
+  background: #516082;
+  color: #fff;
+}
+
+/* Histórico */
+#historicoConsentimento {
+  margin-top: 10px;
+}
+
+.cons-item {
+  padding: 10px 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.cons-item p {
+  margin-bottom: 4px;
+}
+
+.cons-item-tipo {
+  font-size: 13px;
+  color: #516082;
+  font-weight: 600;
+}
+
+.cons-item-tag {
+  font-size: 12px;
+  color: #27ae60;
+  font-weight: 700;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .content {
+    margin-left: 0;
+    padding: 100px 20px 40px;
+  }
+
+  .cons-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .botoes-acao {
+    flex-direction: column;
+  }
+}
+
+/* Impressão: focar no documento */
+@media print {
+  body {
+    background: #fff;
+  }
+  .sidebar,
+  .topbar {
+    display: none !important;
+  }
+  .content {
+    margin: 0;
+    padding: 0;
+  }
+  .card {
+    border: none;
+    box-shadow: none;
+  }
+  .botoes-acao,
+  .cons-flags {
+    display: none !important;
+  }
+}

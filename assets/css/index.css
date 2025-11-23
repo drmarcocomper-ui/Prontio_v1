@@ -1,0 +1,157 @@
+/* ============================================================
+   PRONTIO – Página Inicial (Atendimento)
+   Estilos específicos do index.html
+============================================================ */
+
+/* Card principal de fila reaproveita .card de components.css */
+/* Aqui só especializamos o conteúdo interno */
+
+/* Container da fila (opcional se quiser controlar largura) */
+.fila-container {
+  max-width: 1120px;
+  margin: 0 auto 2rem;
+}
+
+/* Cabeçalho do card de fila (já usa .card-header base se quiser) */
+.card-header-left h3 {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.card-header-left small {
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+/* Select simples está em components/forms, aqui apenas se precisar algo a mais */
+/* Toggle de visão (compromissos/histórico) */
+.toggle-group {
+  background: #f3f5fb;
+  border-radius: 999px;
+  padding: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.toggle-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--color-text-soft);
+  transition: 0.15s ease;
+}
+
+.toggle-btn.active {
+  background: #ffffff;
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(15,23,42,.15);
+}
+
+/* Label do dia (Hoje, Amanhã...) */
+.day-label {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+/* Item de atendimento na fila */
+.appointment {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+  align-items: flex-start;
+}
+
+.appt-time {
+  width: 48px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.appt-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.appt-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.appt-extra {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  margin-top: 2px;
+}
+
+/* Badges da consulta */
+.appt-badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: #f8f9ff;
+  color: var(--color-text-soft);
+}
+
+.badge-status-pend {
+  background: #fff7e6;
+  border-color: #ffe0a3;
+  color: #ad7a07;
+}
+
+.badge-status-conf {
+  background: #e6f8ed;
+  border-color: #b9eccd;
+  color: #1d7a3c;
+}
+
+/* Botão Atender da fila */
+.appt-action {
+  display: flex;
+  align-items: center;
+}
+
+.btn-atender {
+  border: none;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.btn-atender:hover {
+  filter: brightness(0.95);
+}
+
+/* Responsivo específico da Fila */
+@media (max-width: 900px) {
+  .content {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 16px 12px 4px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

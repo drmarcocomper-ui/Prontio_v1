@@ -1,0 +1,123 @@
+/* ============================================================
+   PRONTIO – Módulo Encaminhamento
+   Estilos específicos para a página views/encaminhamento.html
+   ============================================================ */
+
+/* Espaçamento geral entre os cartões da página */
+.page-section--card + .page-section--card {
+  margin-top: 1rem;
+}
+
+/* Caixa de dados do paciente (pode complementar o estilo global de .paciente-box) */
+.paciente-box {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.paciente-box p {
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .paciente-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cabeçalhos dos campos principais do encaminhamento */
+.page-section--card .page-section-title {
+  margin-bottom: 0.75rem;
+}
+
+/* Ajustes finos nos grids de formulário (já existem .grid-2 e .grid-3 em forms.css) */
+.grid-3 > .campo,
+.grid-2 > .campo {
+  min-width: 0;
+}
+
+/* Campo de observações um pouco mais destacado */
+#encObservacoes {
+  min-height: 80px;
+}
+
+/* Botões de ação do formulário */
+.acoes-form {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ============================================================
+   HISTÓRICO DE ENCAMINHAMENTOS
+   ============================================================ */
+
+#historicoEncaminhamento {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.historico-item {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  position: relative;
+  overflow: hidden;
+}
+
+.historico-item::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.5rem;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2563eb, #0f766e);
+}
+
+.historico-item > div {
+  margin-bottom: 0.2rem;
+}
+
+.historico-item > div:first-child {
+  font-weight: 600;
+  color: #111827;
+}
+
+.historico-item .hist-observ {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 0.3rem;
+}
+
+.historico-item hr {
+  border: 0;
+  border-top: 1px dashed #d1d5db;
+  margin: 0.5rem 0 0;
+}
+
+/* Mensagem de estado (ex.: erro, sem registros, etc.) */
+.mensagem-status,
+#historicoEncaminhamento p {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* Responsividade geral do módulo */
+@media (max-width: 900px) {
+  .acoes-form {
+    justify-content: stretch;
+  }
+
+  .acoes-form .btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Atendimento</title>
+
+    <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- ======================= GOOGLE FONTS (Inter) ======================= -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- ======================= CSS Único do Sistema ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+    <!-- CSS DO MÓDULO (se houver) -->
+  <link rel="stylesheet" href="../assets/css/modules/index.css">
+
+  <!-- ======================= JS Base do PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS do Módulo Atendimento =================== -->
+  <script src="../assets/js/modules/atendimento.js" defer></script>
+</head>
+
+<body data-page="atendimento">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA PELO LOADERS) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP MOBILE ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- ========================== TOPBAR ========================== -->
+      <header class="topbar">
+
+        <div class="topbar-left">
+          <!-- Botão menu mobile -->
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <!-- Campo de busca -->
+          <div class="topbar-search">
+            <input
+              type="text"
+              id="buscaPaciente"
+              placeholder="Buscar paciente"
+              autocomplete="off">
+          </div>
+        </div>
+
+        <div class="topbar-right">
+
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <!-- Dropdown de usuário -->
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- ========================== CONTEÚDO INTERNO ========================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Fila de atendimento</h1>
+        <p class="page-subtitle">
+          Visualize, inicie e finalize seus atendimentos.
+        </p>
+
+        <!-- ======================== CARD PRINCIPAL ======================== -->
+        <section class="card">
+
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Próximos atendimentos</h3>
+              <small id="subtitulo-dia">Hoje</small>
+            </div>
+
+            <div class="card-header-right">
+              <select id="ordenacao" class="select-simple">
+                <option value="hora">Horário do agendamento</option>
+                <option value="nome">Nome do paciente</option>
+              </select>
+
+              <div class="toggle-group">
+                <button class="toggle-btn active" data-view="compromissos">
+                  Compromissos
+                </button>
+                <button class="toggle-btn" data-view="historico">
+                  Histórico
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="listaAtendimentos"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>

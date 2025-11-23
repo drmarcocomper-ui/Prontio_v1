@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRONTIO – Agenda</title>
+  
+      <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE GLOBAL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >  
+    <!-- ======================= CSS Único do Sistema ======================== -->
+    <link rel="stylesheet" href="../assets/css/main.css" />
+  
+    <!-- CSS do módulo -->
+    <link rel="stylesheet" href="../assets/css/modules/agenda.css">
+
+    <!-- ======================= JS Base do PRONTIO ========================= -->
+    <script src="../assets/js/core/script.js" defer></script>
+    <script src="../assets/js/core/api.js" defer></script>
+    <script src="../assets/js/core/utils.js" defer></script>
+    <script src="../assets/js/core/layout.js" defer></script>
+    <script src="../assets/js/core/print.js" defer></script>
+    <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+    <!-- JS do Módulo -->
+    <script src="../assets/js/modules/agenda.js" defer></script>
+  </head>
+
+  <body data-page="agenda">
+
+    <div class="app">
+
+      <!-- ========================== SIDEBAR (INJETADA PELO LOADER) ========================== -->
+      <div id="sidebar"></div>
+
+      <!-- ========================== BACKDROP DO SIDEBAR (MOBILE) ========================== -->
+      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+      <!-- ========================== CONTEÚDO ========================== -->
+      <div class="app-content">
+
+        <!-- ========================== TOPO (SOMENTE SOBRE O CONTEÚDO) ========================== -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <!-- Botão de abrir/fechar sidebar (usa estilos de .btn-icon do layout.css) -->
+            <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            <div class="topbar-search">
+              <input
+                type="text"
+                id="buscaAgenda"
+                placeholder="Buscar por nome, tipo ou observação"
+                autocomplete="off"
+              >
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <div class="topbar-user">
+              <div class="user-info">
+                <span class="user-name">Dr. Marco</span>
+                <span class="user-role">Consultório</span>
+              </div>
+              <button class="user-avatar" type="button" id="btnUserMenu">
+                MC
+              </button>
+
+              <!-- Dropdown de usuário -->
+              <div class="user-dropdown" id="userDropdown">
+                <button class="dropdown-item" type="button" data-action="config">
+                  Configurações
+                </button>
+                <button class="dropdown-item" type="button" data-action="sair">
+                  Sair
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- ========================== CONTEÚDO INTERNO ========================== -->
+        <main class="app-content-inner">
+
+          <h1 class="page-title">Agenda de consultas</h1>
+          <p class="page-subtitle">
+            Visualize os atendimentos por dia, confirme presença e vá direto para o atendimento.
+          </p>
+
+          <div class="agenda-main">
+
+            <!-- ===================== LISTA DE CONSULTAS ===================== -->
+            <section class="agenda-card">
+              <div class="agenda-card-header">
+                <div>
+                  <h2>Consultas agendadas</h2>
+                  <p class="subtitle" id="agendaSubtitulo">Hoje</p>
+                </div>
+
+                <div class="agenda-filters">
+
+                  <div class="campo-inline">
+                    <span>Data</span>
+                    <input type="date" id="dataAgenda">
+                  </div>
+
+                  <div class="campo-inline">
+                    <span>Status</span>
+                    <select id="filtroStatusAgenda">
+                      <option value="TODOS">Todos</option>
+                      <option value="Agendado">Agendados</option>
+                      <option value="Confirmado">Confirmados</option>
+                      <option value="Pendente">Pendentes</option>
+                      <option value="Faltou">Faltou</option>
+                    </select>
+                  </div>
+
+                  <button type="button" id="btnAgendaNovo" class="btn btn-primary">
+                    + Novo agendamento
+                  </button>
+
+                </div>
+              </div>
+
+              <div id="listaAgenda"></div>
+            </section>
+
+            <!-- ===================== VISÃO DA SEMANA ===================== -->
+            <section class="agenda-card">
+              <div class="agenda-card-header">
+                <div>
+                  <h2>Semana</h2>
+                  <p class="subtitle">Visão da semana (segunda a domingo).</p>
+                </div>
+              </div>
+
+              <div class="agenda-week" id="agendaWeekView">
+                <div class="agenda-week-header">
+                  <div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div>
+                  <div>Sex</div><div>Sáb</div><div>Dom</div>
+                </div>
+                <div class="agenda-week-grid" id="agendaWeekGrid"></div>
+              </div>
+            </section>
+
+            <!-- ===================== DRAWER ===================== -->
+            <aside class="agenda-drawer" id="drawerAgenda">
+
+              <div class="drawer-header">
+                <div>
+                  <h2 id="tituloDrawerAgenda">Novo agendamento</h2>
+                  <p class="drawer-subtitle">Organize o horário e os dados do paciente.</p>
+                </div>
+                <button class="drawer-close" id="btnFecharAgendaDrawer">✕</button>
+              </div>
+
+              <div class="drawer-body">
+                <form id="agendaForm">
+
+                  <input type="hidden" id="agendaIdAgenda">
+
+                  <div class="drawer-section">
+                    <h3 class="drawer-section-title">Dados da consulta</h3>
+
+                    <div class="grid-2">
+                      <div class="campo">
+                        <label for="agendaData">Data</label>
+                        <input type="date" id="agendaData">
+                      </div>
+
+                      <div class="campo">
+                        <label for="agendaHoraInicio">Hora início</label>
+                        <input type="time" id="agendaHoraInicio">
+                      </div>
+                    </div>
+
+                    <div class="grid-2">
+                      <div class="campo">
+                        <label for="agendaHoraFim">Hora fim</label>
+                        <input type="time" id="agendaHoraFim">
+                      </div>
+
+                      <div class="campo campo-autocomplete">
+                        <label for="agendaTipo">Tipo de consulta</label>
+                        <input type="text" id="agendaTipo" placeholder="Ex.: Primeira consulta, retorno">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="drawer-section">
+                    <h3 class="drawer-section-title">Paciente</h3>
+
+                    <div class="campo campo-autocomplete">
+                      <label for="agendaNomePaciente">Nome do paciente</label>
+                      <input type="text" id="agendaNomePaciente" placeholder="Nome completo">
+                      <input type="hidden" id="agendaIdPaciente">
+                      <div id="agendaSugestoesPaciente" class="autocomplete-list"></div>
+                    </div>
+
+                    <div class="campo">
+                      <label for="agendaStatus">Status</label>
+                      <select id="agendaStatus">
+                        <option value="Agendado">Agendado</option>
+                        <option value="Confirmado">Confirmado</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Faltou">Faltou</option>
+                      </select>
+                    </div>
+
+                    <div class="campo">
+                      <label for="agendaObservacoes">Observações</label>
+                      <textarea id="agendaObservacoes" rows="3"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="acoes-form">
+                    <button type="button" id="btnAgendaLimpar" class="btn btn-secondary">
+                      Limpar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                      Salvar agendamento
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+
+            </aside>
+
+            <!-- Backdrop do drawer de agenda -->
+            <div class="drawer-backdrop" id="backdropAgenda"></div>
+
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Guia Visual</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE GLOBAL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- CSS PRINCIPAL -->
+  <link rel="stylesheet" href="../assets/css/main.css" />
+
+  <!-- JS CORE -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+</head>
+
+<body data-page="guia">
+
+  <div class="app">
+
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
+
+    <!-- Backdrop mobile -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Conteúdo principal -->
+    <div class="app-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Guia Visual PRONTIO</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      <!-- Conteúdo interno -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Componentes</h1>
+        <p class="page-subtitle">Referência visual dos componentes globais do PRONTIO.</p>
+
+        <!-- ======================== BOTÕES ======================== -->
+        <section class="card mb-3">
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Botões</h3>
+              <small>Componentes reais do sistema</small>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button class="btn btn-primary">Primário</button>
+            <button class="btn btn-secondary">Secundário</button>
+            <button class="btn btn-outline">Outline</button>
+            <button class="btn btn-warning">Aviso</button>
+            <button class="btn btn-danger">Perigo</button>
+          </div>
+        </section>
+
+        <!-- ======================== TAGS / CHIPS ======================== -->
+        <section class="card mb-3">
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Tags e Chips</h3>
+              <small>Status e quick actions</small>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mb-2">
+            <span class="badge badge-success">Ativo</span>
+            <span class="badge badge-danger">Inativo</span>
+            <span class="badge badge-info">Plano de Saúde</span>
+          </div>
+
+          <div class="chips-row">
+            <button class="chip-button">Bom estado</button>
+            <button class="chip-button">Sem piora</button>
+            <button class="chip-button">Orientações</button>
+          </div>
+        </section>
+
+        <!-- ======================== TIMELINE ======================== -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <h3>Timeline / Histórico</h3>
+              <small>Estrutura padrão</small>
+            </div>
+          </div>
+
+          <div class="timeline">
+            <article class="timeline-item timeline-appear">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="timeline-type badge-evolucao">Evolução</span>
+                  <span class="timeline-date">20/11/2025 14:30</span>
+                </div>
+
+                <h3 class="timeline-title">Retorno ambulatorial</h3>
+
+                <p class="timeline-text">
+                  Paciente em bom estado geral, sem febre, sem queixas álgicas importantes.
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+</body>
+</html>

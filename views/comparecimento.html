@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>PRONTIO – Declaração de Comparecimento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
+
+  <!-- FONTE GLOBAL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- ======================= CSS Único do Sistema ======================== -->
+  <link rel="stylesheet" href="../assets/css/main.css">
+
+  <!-- CSS do módulo -->
+  <link rel="stylesheet" href="../assets/css/modules/comparecimento.css">
+
+  <!-- ======================= JS Base do PRONTIO ========================= -->
+  <script src="../assets/js/core/script.js" defer></script>
+  <script src="../assets/js/core/api.js" defer></script>
+  <script src="../assets/js/core/utils.js" defer></script>
+  <script src="../assets/js/core/layout.js" defer></script>
+  <script src="../assets/js/core/print.js" defer></script>
+  <script src="../assets/js/core/sidebar-loader.js" defer></script>
+
+  <!-- ======================= JS do Módulo =============================== -->
+  <script src="../assets/js/modules/comparecimento.js" defer></script>
+</head>
+
+<body data-page="comparecimento">
+
+  <div class="app">
+
+    <!-- ========================== SIDEBAR (INJETADA PELO LOADER) ========================== -->
+    <div id="sidebar"></div>
+
+    <!-- ========================== BACKDROP DO MENU (MOBILE) ========================== -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ========================== CONTEÚDO ========================== -->
+    <div class="app-content">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <h1 class="page-title">Declaração de Comparecimento</h1>
+        </div>
+
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+            <button class="user-avatar" id="btnUserMenu">MC</button>
+
+            <div class="user-dropdown" id="userDropdown">
+              <button class="dropdown-item" data-action="config">Configurações</button>
+              <button class="dropdown-item" data-action="sair">Sair</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ======================== CONTEÚDO INTERNO ======================== -->
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Declaração</h1>
+        <p class="page-subtitle">
+          Gere, edite e imprima declarações de comparecimento.
+        </p>
+
+        <!-- ======================== CARD: DADOS DO PACIENTE ======================== -->
+        <section class="card paciente-box">
+          <p><strong>Paciente:</strong> <span id="pacienteNome">—</span></p>
+          <p><strong>ID:</strong> <span id="pacienteID">—</span></p>
+          <p><strong>Telefone:</strong> <span id="pacienteTelefone">—</span></p>
+        </section>
+
+        <!-- ======================== FORMULÁRIO ======================== -->
+        <section class="card">
+
+          <h2 class="page-section-title">Nova Declaração</h2>
+
+          <div class="grid-3">
+            <div class="campo">
+              <label for="cmpData">Data</label>
+              <input type="date" id="cmpData">
+            </div>
+
+            <div class="campo">
+              <label for="cmpHoraInicio">Hora de chegada</label>
+              <input type="time" id="cmpHoraInicio">
+            </div>
+
+            <div class="campo">
+              <label for="cmpHoraFim">Hora de saída</label>
+              <input type="time" id="cmpHoraFim">
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="campo">
+              <label for="cmpTipo">Motivo do comparecimento</label>
+              <select id="cmpTipo">
+                <option value="consulta">Consulta urológica</option>
+                <option value="exame">Exame / procedimento</option>
+                <option value="retorno">Retorno / revisão</option>
+                <option value="pos_operatorio">Avaliação pós-operatória</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="cmpDestino">Destinatário</label>
+              <select id="cmpDestino">
+                <option value="empresa">Empresa / empregador</option>
+                <option value="escola">Escola / faculdade</option>
+                <option value="academia">Academia</option>
+                <option value="justificar">Justificativa geral</option>
+              </select>
+            </div>
+          </div>
+
+          <p class="text-helper">
+            O texto abaixo é sugerido automaticamente. Você pode ajustá-lo antes de salvar/imprimir.
+          </p>
+
+          <div class="campo">
+            <label for="cmpTexto">Texto da declaração</label>
+            <textarea id="cmpTexto" rows="7"
+              placeholder="Texto da declaração…"></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="cmpObs">Observações internas (não aparecem no PDF)</label>
+            <textarea id="cmpObs" rows="3"></textarea>
+          </div>
+
+          <div class="acoes-form">
+            <button type="button" class="btn btn-primary" id="btnSalvarCmp">
+              Salvar declaração
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnImprimirCmp">
+              Imprimir declaração
+            </button>
+          </div>
+        </section>
+
+        <!-- ======================== HISTÓRICO ======================== -->
+        <section class="card">
+          <h2 class="page-section-title">Histórico de declarações</h2>
+          <div id="historicoComparecimento"></div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

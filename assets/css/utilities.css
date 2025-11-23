@@ -1,0 +1,24 @@
+/* ============================================================
+   PRONTIO – Utilities (helpers)
+============================================================ */
+
+.flex { display: flex !important; }
+.flex-col { flex-direction: column !important; }
+.flex-row { flex-direction: row !important; }
+
+.items-center { align-items: center !important; }
+.justify-between { justify-content: space-between !important; }
+
+.mt-1 { margin-top: 4px !important; }
+.mt-2 { margin-top: 8px !important; }
+.mb-1 { margin-bottom: 4px !important; }
+.mb-2 { margin-bottom: 8px !important; }
+
+.p-1 { padding: 4px !important; }
+.p-2 { padding: 8px !important; }
+
+.text-sm { font-size: 0.85rem !important; }
+.text-muted { color: var(--color-text-soft) !important; }
+
+.w-100 { width: 100% !important; }
+.hidden { display: none !important; }
