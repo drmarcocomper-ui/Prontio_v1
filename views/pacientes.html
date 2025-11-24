@@ -17,7 +17,7 @@
   <!-- Favicon -->
   <link rel="icon" href="/assets/img/icons/icon-192.png">
 
-  <!-- ======================= GOOGLE FONTS (Inter) ======================= -->
+  <!-- GOOGLE FONTS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -25,18 +25,16 @@
     rel="stylesheet"
   >
 
-  <!-- ======================= CSS ÚNICO DO SISTEMA ======================== -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/assets/css/main.css" />
-
-  <!-- CSS DO MÓDULO (se houver) -->
   <link rel="stylesheet" href="/assets/css/modules/pacientes.css">
 
   <!-- ======================= JS BASE DO PRONTIO ========================= -->
-  <!-- 1) camada base da API: define PRONTIO.API.call / window.callApi com a URL do Apps Script -->
-  <script src="/assets/js/core/api-core.js" defer></script>
-
-  <!-- 2) script base global -->
+  <!-- 1) script base global -->
   <script src="/assets/js/core/script.js" defer></script>
+
+  <!-- 2) camada base da API (Apps Script) -->
+  <script src="/assets/js/core/api-core.js" defer></script>
 
   <!-- 3) camada de API por módulo (PacientesApi, AgendaApi, etc.) -->
   <script src="/assets/js/core/api.js" defer></script>
@@ -47,11 +45,9 @@
   <script src="/assets/js/core/print.js" defer></script>
   <script src="/assets/js/core/sidebar-loader.js" defer></script>
 
-  <!-- ======================= JS específico do módulo ==================== -->
-  <!-- MÓDULO de Pacientes (atenção ao caminho /modules/) -->
+  <!-- 5) módulo específico de Pacientes + init inline que já fizemos -->
   <script src="/assets/js/modules/pacientes.js" defer></script>
 
-  <!-- ======================= Inicialização da VIEW Pacientes ============ -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       try {
@@ -65,8 +61,6 @@
           window.Pacientes.init();
         } else {
           console.error("PRONTIO :: Módulo de Pacientes não encontrado. Verifique se /assets/js/modules/pacientes.js foi carregado.");
-          console.log("DEBUG :: window.PRONTIO =", window.PRONTIO);
-          console.log("DEBUG :: window.Pacientes =", window.Pacientes);
         }
       } catch (err) {
         console.error("PRONTIO :: Erro ao inicializar módulo de Pacientes a partir da view:", err);
@@ -74,6 +68,7 @@
     });
   </script>
 </head>
+
 
 <body data-page="pacientes">
 
