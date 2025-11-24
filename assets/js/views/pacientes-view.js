@@ -3,14 +3,14 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   try {
-    // Tentativa preferencial: módulo no namespace PRONTIO
+    // Preferencial: namespace PRONTIO
     if (window.PRONTIO && PRONTIO.Modules && PRONTIO.Modules.Pacientes && typeof PRONTIO.Modules.Pacientes.init === "function") {
       PRONTIO.Modules.Pacientes.init();
       console.log("PRONTIO :: Pacientes inicializado (PRONTIO.Modules.Pacientes.init()).");
       return;
     }
 
-    // Fallback: wrapper global `window.Pacientes` (criado no final do pacientes.js)
+    // Fallback: wrapper global
     if (window.Pacientes && typeof window.Pacientes.init === "function") {
       window.Pacientes.init();
       console.log("PRONTIO :: Pacientes inicializado (window.Pacientes.init()).");
