@@ -8,8 +8,9 @@
  ******************************************************/
 
 /**
- * Salvar evolução (novo ou editar)
- * O frontend envia:
+ * Salvar evolução (novo ou edição)
+ *
+ * Front-end envia:
  * {
  *   action: "evolucao-salvar",
  *   dados: {
@@ -24,21 +25,26 @@
  * }
  */
 function evolucaoSalvar_(body) {
-  // Pode vir como body.dados, body.evolucao ou o próprio body
   const dados = body.dados || body.evolucao || body;
   const sheet = getSheet_(CONFIG.ABA_EVOLUCAO);
 
   const agora = new Date();
 
-  // ID existente ou novo
+  // ID novo ou existente
   let id = dados.ID_Evolucao || dados.id || "";
   if (!id) id = gerarId_();
 
-  // Se não vierem Data/Hora, usamos a data/hora atuais
-  const dataFinal = dados.Data || formatDate_(agora);
-  const horaFinal = dados.Hora || formatTime_(agora);
+  // Se o usuário não enviar Data e Hora, preencher com agora
+  const dataFinal =
+    dados.Data ||
+    dados.data ||
+    Utilities.formatDate(agora, "America/Sao_Paulo", "yyyy-MM-dd");
 
-  // Objeto completo conforme colunas da planilha
+  const horaFinal =
+    dados.Hora ||
+    dados.hora ||
+    Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm");
+
   const obj = {
     ID_Evolucao:  id,
     Data:         dataFinal,
@@ -47,19 +53,24 @@ function evolucaoSalvar_(body) {
     NomePaciente: dados.NomePaciente || dados.nomePaciente || "",
     Tipo:         dados.Tipo || dados.tipo || "",
     Evolucao:     dados.Evolucao || dados.evolucao || "",
-    CriadoEm:     dados.CriadoEm || Utilities.formatDate(
-      agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss"
-    )
+    CriadoEm:     dados.CriadoEm ||
+                  Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss")
   };
 
-  // Upsert na aba Consultas
-  const result = upsertRow_(sheet, "ID_Evolucao", id, obj, {
-    Data:     formatDate_(agora),
-    Hora:     formatTime_(agora),
-    CriadoEm: Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss")
-  });
+  // Upsert
+  const result = upsertRow_(
+    sheet,
+    "ID_Evolucao",
+    id,
+    obj,
+    {
+      Data:     dataFinal,
+      Hora:     horaFinal,
+      CriadoEm: Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss")
+    }
+  );
 
-  // REGISTRA NO PRONTUÁRIO
+  // Registrar no prontuário
   registrarNoProntuario_(
     obj.ID_Paciente,
     "evolucao",
@@ -68,34 +79,38 @@ function evolucaoSalvar_(body) {
   );
 
   return {
-    ok: true,
-    ID_Evolucao: result.id,
+    ID_Evolucao: id,
     row: result.row
   };
 }
 
+
 /**
- * Listar evoluções de um paciente
- * Action:
- *  - "evolucao-listar-paciente"
- *  - "evolucao-por-paciente"
+ * Listar evoluções de um paciente (ordenadas por data/hora desc)
+ *
+ * Actions aceitas:
+ *   "evolucao-listar-paciente"
+ *   "evolucao-por-paciente"
  */
 function evolucaoListarPorPaciente_(body) {
-  const idPaciente = body.ID_Paciente || body.idPaciente;
+  const idPaciente =
+    body.ID_Paciente ||
+    body.idPaciente ||
+    body.idpaciente;
 
   if (!idPaciente) {
     throw new Error("ID_Paciente é obrigatório em evolucao-listar-paciente.");
   }
 
   const sheet = getSheet_(CONFIG.ABA_EVOLUCAO);
-  const dados = listAllRowsAsObjects_(sheet);
+  const lista = listAllRowsAsObjects_(sheet);
 
   // Filtrar evoluções do paciente
-  const filtrados = dados.filter(item =>
+  const filtrados = lista.filter(item =>
     String(item.ID_Paciente || "") === String(idPaciente)
   );
 
-  // Ordenar por data/hora (mais recentes primeiro)
+  // Ordenar por Data e Hora (mais recente primeiro)
   filtrados.sort((a, b) => {
     const d1 = new Date(a.Data + " " + a.Hora);
     const d2 = new Date(b.Data + " " + b.Hora);

@@ -36,7 +36,7 @@ PRONTIO.App = PRONTIO.App || {};
 =========================== */
 
 // URL do Web App do Google Apps Script
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHPFcc6g2RfN_xMOveo_D2H430usnr9FfNKEpYzLGW3uFBq0nFuzhseGgG3USnzMcixg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsx7unrwnkV9cWsdwNnu6DokUoge5_8XzrbLL6-bngbtAk4gTXWykcWV5ZfDA8kVNFZg/exec";
 
 /* ===========================
    CHAMADA PADRÃO À API

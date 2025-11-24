@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PRONTIO – Agenda</title>
   
-      <!-- PWA -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#4b6fff">
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4b6fff">
 
-  <!-- iOS PWA -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" href="/assets/img/icons/icon-192.png">
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/img/icons/icon-192.png">
 
-  <!-- FONTE GLOBAL -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  >  
+    <!-- FONTE GLOBAL -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    >
+
     <!-- ======================= CSS Único do Sistema ======================== -->
     <link rel="stylesheet" href="/assets/css/main.css" />
   
@@ -31,8 +32,16 @@
     <link rel="stylesheet" href="/assets/css/modules/agenda.css">
 
     <!-- ======================= JS Base do PRONTIO ========================= -->
+    <!-- 1) camada base: define PRONTIO.API.call / window.callApi com a URL do Apps Script -->
+    <script src="/assets/js/core/api-core.js" defer></script>
+
+    <!-- 2) script base global do sistema -->
     <script src="/assets/js/core/script.js" defer></script>
+
+    <!-- 3) sua camada de API por módulo (usa PRONTIO.API.call / callApi) -->
     <script src="/assets/js/core/api.js" defer></script>
+
+    <!-- 4) utilitários e layout -->
     <script src="/assets/js/core/utils.js" defer></script>
     <script src="/assets/js/core/layout.js" defer></script>
     <script src="/assets/js/core/print.js" defer></script>
