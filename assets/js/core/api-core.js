@@ -12,15 +12,24 @@
  *
  * - Compatível com o Code.gs atual:
  *   doPost(e) espera body.action + demais campos no root.
+ *
+ * Observação:
+ * - Tenta usar PRONTIO.Config.SCRIPT_URL (definido em script.js).
+ *   Se não existir, usa o fallback com a URL fixa do Web App.
  ******************************************************/
 
 // Garante namespace global
 window.PRONTIO = window.PRONTIO || {};
 PRONTIO.API = PRONTIO.API || {};
 
-// ⚠️ COLE AQUI a URL da sua Web App do Apps Script
-// (Apps Script → Implantar → Nova implantação → Web app → copiar URL)
-const PRONTIO_API_URL = "https://script.google.com/macros/s/SEU_ANTIGO_ID/exec";
+// URL base da Web App do Apps Script
+// Implantação atual:
+// AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw
+const PRONTIO_API_URL =
+  (window.PRONTIO &&
+    PRONTIO.Config &&
+    PRONTIO.Config.SCRIPT_URL) ||
+  "https://script.google.com/macros/s/AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw/exec";
 
 /**
  * Função base para chamar o backend (Code.gs)
@@ -31,8 +40,10 @@ const PRONTIO_API_URL = "https://script.google.com/macros/s/SEU_ANTIGO_ID/exec";
  * callApi({ action: "pacientes-listar", filtros: { nome: "João" } })
  */
 async function callApi(body = {}) {
-  if (!PRONTIO_API_URL || PRONTIO_API_URL === "COLE_AQUI_A_URL_DA_SUA_WEB_APP") {
-    throw new Error("PRONTIO_API_URL não foi configurada em assets/js/core/api-core.js");
+  if (!PRONTIO_API_URL) {
+    throw new Error(
+      "PRONTIO_API_URL não foi configurada corretamente em assets/js/core/api-core.js"
+    );
   }
 
   if (!body.action) {
