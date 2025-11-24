@@ -1,9 +1,9 @@
 /******************************************************
  * PRONTIO – api.js
- * Camada de acesso ao backend (Code.gs)
+ * Camada de acesso ao backend por módulo
  *
- * Cada módulo deve usar estes serviços em vez de chamar
- * callApi / PRONTIO.API.call diretamente.
+ * Depende de:
+ *  - api-core.js  (define callApi / PRONTIO.API.call)
  *
  * Organização:
  * - PRONTIO.API.Pacientes
@@ -15,30 +15,41 @@
  * - PRONTIO.API.Atestados
  * - PRONTIO.API.Comparecimento
  * - PRONTIO.API.Medicamentos
- *
- * Compatibilidade:
- * - Mantém os objetos globais antigos:
- *   PacientesApi, AgendaApi, EvolucaoApi, ReceitaApi,
- *   ExamesApi, LaudosApi, AtestadosApi, ComparecimentoApi,
- *   MedicamentosApi.
  ******************************************************/
 
-// garante que o namespace exista (caso script.js não tenha sido carregado ainda)
 window.PRONTIO = window.PRONTIO || {};
 PRONTIO.API = PRONTIO.API || {};
 
-// atalho interno para a função de chamada
+// Atalho interno para a função de chamada genérica
 const _call = PRONTIO.API.call || window.callApi;
 
 /* ========= PACIENTES ========= */
 
 PRONTIO.API.Pacientes = {
+  /**
+   * Lista pacientes (com filtros opcionais no futuro).
+   * Backend: pacientes-listar
+   */
   listar(filtros = {}) {
+    // No backend, pacientesListar_(body) recebe { action, filtros }
     return _call({ action: "pacientes-listar", filtros });
   },
 
+  /**
+   * Salva paciente (novo ou edição).
+   * Backend: pacientes-salvar
+   * body.dados vai para Pacientes.gs, que aceita body.dados / body.payload / body direto.
+   */
   salvar(dados) {
     return _call({ action: "pacientes-salvar", dados });
+  },
+
+  /**
+   * Obtém um paciente específico pelo ID.
+   * Backend: pacientes-obter
+   */
+  obter(idPaciente) {
+    return _call({ action: "pacientes-obter", idPaciente });
   },
 };
 
@@ -53,7 +64,6 @@ PRONTIO.API.Agenda = {
     return _call({ action: "agenda-salvar", dados });
   },
 
-  // atualizar status do agendamento
   atualizarStatus(idAgenda, status) {
     return _call({
       action: "agenda-atualizar-status",
@@ -144,7 +154,7 @@ PRONTIO.API.Medicamentos = {
 };
 
 /* ==========================================================
-   WRAPPERS DE COMPATIBILIDADE (objetos globais antigos)
+   WRAPPERS GLOBAIS (compatibilidade com código antigo)
    ========================================================== */
 
 window.PacientesApi = PRONTIO.API.Pacientes;
