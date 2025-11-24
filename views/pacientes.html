@@ -48,10 +48,32 @@
   <script src="/assets/js/core/sidebar-loader.js" defer></script>
 
   <!-- ======================= JS específico do módulo ==================== -->
-  <!-- MÓDULO de Pacientes -->
+  <!-- MÓDULO de Pacientes (atenção ao caminho /modules/) -->
   <script src="/assets/js/modules/pacientes.js" defer></script>
 
- </head>
+  <!-- ======================= Inicialização da VIEW Pacientes ============ -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      try {
+        console.log("PRONTIO :: DOMContentLoaded em /views/pacientes");
+
+        if (window.PRONTIO && PRONTIO.Modules && PRONTIO.Modules.Pacientes && typeof PRONTIO.Modules.Pacientes.init === "function") {
+          console.log("PRONTIO :: Chamando PRONTIO.Modules.Pacientes.init() a partir do HTML da view.");
+          PRONTIO.Modules.Pacientes.init();
+        } else if (window.Pacientes && typeof window.Pacientes.init === "function") {
+          console.log("PRONTIO :: Chamando window.Pacientes.init() (fallback).");
+          window.Pacientes.init();
+        } else {
+          console.error("PRONTIO :: Módulo de Pacientes não encontrado. Verifique se /assets/js/modules/pacientes.js foi carregado.");
+          console.log("DEBUG :: window.PRONTIO =", window.PRONTIO);
+          console.log("DEBUG :: window.Pacientes =", window.Pacientes);
+        }
+      } catch (err) {
+        console.error("PRONTIO :: Erro ao inicializar módulo de Pacientes a partir da view:", err);
+      }
+    });
+  </script>
+</head>
 
 <body data-page="pacientes">
 
