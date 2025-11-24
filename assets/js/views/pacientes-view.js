@@ -3,16 +3,22 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   try {
-    if (window.PRONTIO?.Modules?.Pacientes?.init) {
+    // Tentativa preferencial: módulo no namespace PRONTIO
+    if (window.PRONTIO && PRONTIO.Modules && PRONTIO.Modules.Pacientes && typeof PRONTIO.Modules.Pacientes.init === "function") {
       PRONTIO.Modules.Pacientes.init();
-      console.log("PRONTIO :: Pacientes inicializado.");
-    } else if (window.Pacientes?.init) {
-      window.Pacientes.init();
-      console.log("PRONTIO :: Pacientes inicializado (fallback).");
-    } else {
-      console.error("PRONTIO :: Módulo Pacientes não encontrado.");
+      console.log("PRONTIO :: Pacientes inicializado (PRONTIO.Modules.Pacientes.init()).");
+      return;
     }
+
+    // Fallback: wrapper global `window.Pacientes` (criado no final do pacientes.js)
+    if (window.Pacientes && typeof window.Pacientes.init === "function") {
+      window.Pacientes.init();
+      console.log("PRONTIO :: Pacientes inicializado (window.Pacientes.init()).");
+      return;
+    }
+
+    console.error("PRONTIO :: Módulo Pacientes não encontrado para inicializar.");
   } catch (err) {
-    console.error("Erro ao inicializar módulo Pacientes:", err);
+    console.error("PRONTIO :: Erro ao iniciar módulo de Pacientes:", err);
   }
 });
