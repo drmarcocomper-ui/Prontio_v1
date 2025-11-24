@@ -3,7 +3,7 @@
  * Camada de acesso ao backend por módulo
  *
  * Depende de:
- *  - api-core.js  (define callApi / PRONTIO.API.call)
+ *  - api-core.js  (define callApi / window.callApi)
  *
  * Organização:
  * - PRONTIO.API.Pacientes
@@ -20,8 +20,15 @@
 window.PRONTIO = window.PRONTIO || {};
 PRONTIO.API = PRONTIO.API || {};
 
-// Atalho interno para a função de chamada genérica
-const _call = PRONTIO.API.call || window.callApi;
+/**
+ * ⚠️ MUITO IMPORTANTE:
+ * Aqui usamos SEMPRE window.callApi (definido em api-core.js),
+ * para garantir que estamos chamando o Apps Script.
+ *
+ * Não usamos PRONTIO.API.call, porque script.js pode sobrescrevê-lo
+ * apontando para um endpoint interno (foi isso que gerou o 405 em /views/undefined).
+ */
+const _call = window.callApi;
 
 /* ========= PACIENTES ========= */
 
@@ -31,7 +38,6 @@ PRONTIO.API.Pacientes = {
    * Backend: pacientes-listar
    */
   listar(filtros = {}) {
-    // No backend, pacientesListar_(body) recebe { action, filtros }
     return _call({ action: "pacientes-listar", filtros });
   },
 
