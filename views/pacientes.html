@@ -1,343 +1,379 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRONTIO – Pacientes</title>
+/******************************************************
+ * PRONTIO – Módulo: Pacientes
+ * Controle completo da tela de pacientes:
+ * - listagem
+ * - filtros
+ * - drawer (novo/editar)
+ * - salvar
+ * - envio para prontuário
+ *
+ * Agora usando diretamente window.callApi (api-core.js)
+ * para conversar com o Apps Script.
+ ******************************************************/
 
-  <!-- PWA -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#4b6fff">
+window.PRONTIO = window.PRONTIO || {};
+PRONTIO.Modules = PRONTIO.Modules || {};
 
-  <!-- iOS PWA -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
+PRONTIO.Modules.Pacientes = (() => {
 
-  <!-- Favicon -->
-  <link rel="icon" href="/assets/img/icons/icon-192.png">
+  /* ============================================================
+     ESTADO
+  ============================================================ */
 
-  <!-- GOOGLE FONTS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  >
+  let pacientesCache = [];
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <link rel="stylesheet" href="/assets/css/modules/pacientes.css">
+  /* ============================================================
+     STORAGE — salva paciente para módulo prontuário
+  ============================================================ */
 
-  <!-- ======================= JS BASE DO PRONTIO ========================= -->
-  <!-- 1) script base global -->
-  <script src="/assets/js/core/script.js" defer></script>
+  function salvarSelecionado(p) {
+    if (!p) return;
 
-  <!-- 2) camada base da API (Apps Script) -->
-  <script src="/assets/js/core/api-core.js" defer></script>
+    const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
 
-  <!-- 3) camada de API por módulo (PacientesApi, AgendaApi, etc.) -->
-  <script src="/assets/js/core/api.js" defer></script>
+    const obj = {
+      id: p.ID_Paciente,
+      nome: p.NomePaciente,
+      telefone: p.Telefone1 || p.Telefone2 || "",
+      idade: idade || "",
+      plano: p.PlanoSaude || "",
+      alergias: p.Alergias || "",
+      medicacoes: p.MedicacoesEmUso || "",
+      doencas: p.DoencasCronicas || "",
+      dataNascimento: p.DataNascimento || "",
+    };
 
-  <!-- 4) utilitários e layout -->
-  <script src="/assets/js/core/utils.js" defer></script>
-  <script src="/assets/js/core/layout.js" defer></script>
-  <script src="/assets/js/core/print.js" defer></script>
-  <script src="/assets/js/core/sidebar-loader.js" defer></script>
+    PRONTIO.Storage.salvarPacienteSelecionado(obj);
+  }
 
-  <!-- 5) módulo específico de Pacientes + init inline que já fizemos -->
-  <script src="/assets/js/modules/pacientes.js" defer></script>
+  /* ============================================================
+     API — Pacientes (USANDO callApi DIRETO)
+  ============================================================ */
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      try {
-        console.log("PRONTIO :: DOMContentLoaded em /views/pacientes");
-
-        if (window.PRONTIO && PRONTIO.Modules && PRONTIO.Modules.Pacientes && typeof PRONTIO.Modules.Pacientes.init === "function") {
-          console.log("PRONTIO :: Chamando PRONTIO.Modules.Pacientes.init() a partir do HTML da view.");
-          PRONTIO.Modules.Pacientes.init();
-        } else if (window.Pacientes && typeof window.Pacientes.init === "function") {
-          console.log("PRONTIO :: Chamando window.Pacientes.init() (fallback).");
-          window.Pacientes.init();
-        } else {
-          console.error("PRONTIO :: Módulo de Pacientes não encontrado. Verifique se /assets/js/modules/pacientes.js foi carregado.");
-        }
-      } catch (err) {
-        console.error("PRONTIO :: Erro ao inicializar módulo de Pacientes a partir da view:", err);
+  async function carregarPacientes() {
+    try {
+      if (typeof window.callApi !== "function") {
+        throw new Error("window.callApi não está definido. Verifique api-core.js.");
       }
+
+      const res = await window.callApi({
+        action: "pacientes-listar",
+        filtros: {}
+      });
+
+      // backend retorna { ok, action, total, pacientes, data:{...} }
+      const payload = res.data || res;
+      pacientesCache = payload.pacientes || payload.lista || [];
+      renderizarLista();
+    } catch (e) {
+      console.error(e);
+      PRONTIO.UI.showToast("Erro ao carregar pacientes: " + e.message, "erro");
+    }
+  }
+
+  function montarDoForm() {
+    return {
+      ID_Paciente: PRONTIO.Forms.getValue("idPaciente") || null,
+      NomePaciente: PRONTIO.Forms.getValue("nomePaciente"),
+      DataNascimento: PRONTIO.Forms.getValue("dataNascimento"),
+      Sexo: PRONTIO.Forms.getValue("sexo"),
+      CPF: PRONTIO.Forms.getValue("cpf"),
+      RG: PRONTIO.Forms.getValue("rg"),
+      Telefone1: PRONTIO.Forms.getValue("telefone1"),
+      Telefone2: PRONTIO.Forms.getValue("telefone2"),
+      Email: PRONTIO.Forms.getValue("email"),
+      EnderecoRua: PRONTIO.Forms.getValue("enderecoRua"),
+      EnderecoNumero: PRONTIO.Forms.getValue("enderecoNumero"),
+      EnderecoBairro: PRONTIO.Forms.getValue("enderecoBairro"),
+      EnderecoCidade: PRONTIO.Forms.getValue("enderecoCidade"),
+      EnderecoUF: PRONTIO.Forms.getValue("enderecoUF"),
+      EnderecoCEP: PRONTIO.Forms.getValue("enderecoCEP"),
+      Alergias: PRONTIO.Forms.getValue("alergias"),
+      MedicacoesEmUso: PRONTIO.Forms.getValue("medicacoesEmUso"),
+      DoencasCronicas: PRONTIO.Forms.getValue("doencasCronicas"),
+      ObsImportantes: PRONTIO.Forms.getValue("obsImportantes"),
+      PlanoSaude: PRONTIO.Forms.getValue("planoSaude"),
+      NumeroCarteirinha: PRONTIO.Forms.getValue("numeroCarteirinha"),
+      ValidadeCarteirinha: PRONTIO.Forms.getValue("validadeCarteirinha"),
+      Ativo: PRONTIO.Forms.getValue("ativo") || "S",
+    };
+  }
+
+  async function salvarPaciente(irParaProntuario = false) {
+    const paciente = montarDoForm();
+
+    if (!paciente.NomePaciente) {
+      PRONTIO.UI.showToast("Informe o nome do paciente.", "erro");
+      return;
+    }
+
+    try {
+      if (typeof window.callApi !== "function") {
+        throw new Error("window.callApi não está definido. Verifique api-core.js.");
+      }
+
+      const res = await window.callApi({
+        action: "pacientes-salvar",
+        dados: paciente
+      });
+
+      // backend retorna { ok, action, data:{ idPaciente, paciente, isNovo } }
+      const data = res.data || res;
+      const salvo = data.paciente || data;
+
+      PRONTIO.UI.showToast("Paciente salvo com sucesso.");
+
+      const idx = pacientesCache.findIndex(
+        (p) => p.ID_Paciente === salvo.ID_Paciente
+      );
+
+      if (idx >= 0) pacientesCache[idx] = salvo;
+      else pacientesCache.push(salvo);
+
+      preencherFormulario(salvo);
+      renderizarLista();
+
+      if (irParaProntuario) {
+        salvarSelecionado(salvo);
+        window.location.href = "prontuario.html";
+      }
+    } catch (err) {
+      console.error(err);
+      PRONTIO.UI.showToast("Erro ao salvar paciente: " + err.message, "erro");
+    }
+  }
+
+  function irParaProntuarioPorId(idPaciente) {
+    const p = pacientesCache.find((x) => x.ID_Paciente === idPaciente);
+    if (!p) {
+      PRONTIO.UI.showToast("Paciente não encontrado.", "erro");
+      return;
+    }
+
+    salvarSelecionado(p);
+    window.location.href = "prontuario.html";
+  }
+
+  /* ============================================================
+     UI — FORM / DRAWER / LISTA
+  ============================================================ */
+
+  function preencherFormulario(p) {
+    PRONTIO.Forms.setValue("idPaciente", p.ID_Paciente || "");
+    PRONTIO.Forms.setValue("nomePaciente", p.NomePaciente);
+    PRONTIO.Forms.setValue("dataNascimento", p.DataNascimento);
+    PRONTIO.Forms.setValue("sexo", p.Sexo);
+    PRONTIO.Forms.setValue("cpf", p.CPF);
+    PRONTIO.Forms.setValue("rg", p.RG);
+    PRONTIO.Forms.setValue("telefone1", p.Telefone1);
+    PRONTIO.Forms.setValue("telefone2", p.Telefone2);
+    PRONTIO.Forms.setValue("email", p.Email);
+    PRONTIO.Forms.setValue("enderecoRua", p.EnderecoRua);
+    PRONTIO.Forms.setValue("enderecoNumero", p.EnderecoNumero);
+    PRONTIO.Forms.setValue("enderecoBairro", p.EnderecoBairro);
+    PRONTIO.Forms.setValue("enderecoCidade", p.EnderecoCidade);
+    PRONTIO.Forms.setValue("enderecoUF", p.EnderecoUF);
+    PRONTIO.Forms.setValue("enderecoCEP", p.EnderecoCEP);
+    PRONTIO.Forms.setValue("alergias", p.Alergias);
+    PRONTIO.Forms.setValue("medicacoesEmUso", p.MedicacoesEmUso);
+    PRONTIO.Forms.setValue("doencasCronicas", p.DoencasCronicas);
+    PRONTIO.Forms.setValue("obsImportantes", p.ObsImportantes);
+    PRONTIO.Forms.setValue("planoSaude", p.PlanoSaude);
+    PRONTIO.Forms.setValue("numeroCarteirinha", p.NumeroCarteirinha);
+    PRONTIO.Forms.setValue("validadeCarteirinha", p.ValidadeCarteirinha);
+    PRONTIO.Forms.setValue("ativo", p.Ativo || "S");
+
+    const titulo = document.getElementById("tituloFormulario");
+    if (titulo) titulo.textContent = "Editar paciente";
+  }
+
+  function limparFormulario() {
+    const form = document.getElementById("paciente-form");
+    if (form) form.reset();
+
+    PRONTIO.Forms.setValue("idPaciente", "");
+    PRONTIO.Forms.setValue("ativo", "S");
+
+    const titulo = document.getElementById("tituloFormulario");
+    if (titulo) titulo.textContent = "Novo paciente";
+  }
+
+  function renderizarLista() {
+    const div = document.getElementById("listaPacientes");
+    if (!div) return;
+
+    const busca = (PRONTIO.Forms.getValue("buscaPaciente") || "").toLowerCase();
+    const filtro = PRONTIO.Forms.getValue("filtroAtivo") || "S";
+
+    const filtrados = pacientesCache.filter((p) => {
+      if (filtro !== "TODOS" && (p.Ativo || "S") !== filtro) return false;
+      if (busca) {
+        const alvo = `${p.NomePaciente} ${p.CPF} ${p.Telefone1} ${p.Telefone2}`.toLowerCase();
+        if (!alvo.includes(busca)) return false;
+      }
+      return true;
     });
-  </script>
-</head>
 
+    filtrados.sort((a, b) =>
+      (a.NomePaciente || "").localeCompare(b.NomePaciente || "", "pt-BR")
+    );
 
-<body data-page="pacientes">
+    div.innerHTML = "";
 
-  <div class="app">
+    filtrados.forEach((p) => {
+      const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
+      const iniciais = (p.NomePaciente || "")
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((t) => t[0].toUpperCase())
+        .join("");
 
-    <!-- ========================== SIDEBAR (INJETADA PELO loader) ========================== -->
-    <div id="sidebar"></div>
+      const telefone = p.Telefone1 || p.Telefone2 || "";
+      const plano = p.PlanoSaude || "Sem plano";
+      const cidade = p.EnderecoCidade || "";
+      const uf = p.EnderecoUF || "";
 
-    <!-- ========================== BACKDROP MOBILE ========================== -->
-    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+      const infoLinha =
+        telefone && (cidade || uf)
+          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""}`
+          : telefone || cidade || "";
 
-    <!-- ========================== CONTEÚDO ========================== -->
-    <div class="app-content">
+      const statusTag =
+        p.Ativo === "N"
+          ? `<span class="tag-pill tag-inativo">Inativo</span>`
+          : `<span class="tag-pill tag-ativo">Ativo</span>`;
 
-      <!-- ========================== TOPBAR ========================== -->
-      <header class="topbar">
+      const card = document.createElement("div");
+      card.className = "paciente-item";
 
-        <div class="topbar-left">
-          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
+      card.innerHTML = `
+        <div class="paciente-main">
+          <div class="paciente-avatar">${iniciais}</div>
+          <div>
+            <div class="paciente-nome">
+              ${p.NomePaciente || ""}
+              ${idade ? `<span class="paciente-idade">• ${idade} anos</span>` : ""}
+            </div>
+            ${infoLinha ? `<div class="paciente-sec">${infoLinha}</div>` : ""}
+          </div>
+        </div>
+
+        <div class="paciente-tags">
+          <span class="tag-pill tag-plano">${plano}</span>
+          ${statusTag}
+        </div>
+
+        <div class="paciente-actions">
+          <button class="btn-primario" data-acao="prontuario" data-id="${p.ID_Paciente}">
+            Prontuário
           </button>
-
-          <div class="topbar-search search-box-pacientes">
-            <input
-              type="text"
-              id="buscaPaciente"
-              placeholder="Buscar paciente pelo nome, CPF ou telefone"
-              autocomplete="off"
-            >
-          </div>
+          <button class="btn-tabela" data-acao="editar" data-id="${p.ID_Paciente}">
+            Editar
+          </button>
         </div>
+      `;
 
-        <div class="topbar-right">
+      div.appendChild(card);
+    });
+  }
 
-          <div class="topbar-user">
-            <div class="user-info">
-              <span class="user-name">Dr. Marco</span>
-              <span class="user-role">Consultório</span>
-            </div>
+  /* ============================================================
+     EVENTOS / DRAWER
+  ============================================================ */
 
-            <button class="user-avatar" id="btnUserMenu">MC</button>
+  function registrarEventos() {
+    const painel = document.getElementById("painelPaciente");
+    const backdrop = document.getElementById("backdropPaciente");
+    const tituloForm = document.getElementById("tituloFormulario");
 
-            <!-- Dropdown -->
-            <div class="user-dropdown" id="userDropdown">
-              <button class="dropdown-item" data-action="config">Configurações</button>
-              <button class="dropdown-item" data-action="sair">Sair</button>
-            </div>
-          </div>
+    const abrirDrawer = function (modo) {
+      if (tituloForm) {
+        tituloForm.textContent =
+          modo === "editar" ? "Editar paciente" : "Novo paciente";
+      }
+      painel.classList.add("aberto");
+      backdrop.classList.add("visivel");
+    };
 
-        </div>
-      </header>
+    const fecharDrawer = function () {
+      painel.classList.remove("aberto");
+      backdrop.classList.remove("visivel");
+    };
 
-      <!-- ========================== CONTEÚDO INTERNO ========================== -->
-      <main class="app-content-inner">
+    document.getElementById("btnFecharDrawer")?.addEventListener("click", fecharDrawer);
+    backdrop?.addEventListener("click", fecharDrawer);
 
-        <h1 class="page-title">Pacientes</h1>
-        <p class="page-subtitle">
-          Visualize, filtre e inicie o atendimento a partir da central de pacientes.
-        </p>
+    document.getElementById("btnNovoPaciente")?.addEventListener("click", () => {
+      limparFormulario();
+      abrirDrawer("novo");
+    });
 
-        <div class="pacientes-main">
+    document.getElementById("btnCancelarEdicao")?.addEventListener("click", limparFormulario);
 
-          <!-- CARD LISTA -->
-          <section class="card pacientes-card">
+    document.getElementById("btnSalvarIrProntuario")?.addEventListener("click", () => {
+      salvarPaciente(true);
+    });
 
-            <div class="pacientes-card-header">
-              <div>
-                <h2>Lista de pacientes</h2>
-                <p class="subtitle">
-                  Clique em “Prontuário” ou “Editar” para continuar o atendimento.
-                </p>
-              </div>
+    const form = document.getElementById("paciente-form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        salvarPaciente(false);
+      });
+    }
 
-              <div class="pacientes-card-actions">
-                <label class="filtro-status">
-                  <span>Status</span>
-                  <select id="filtroAtivo" class="select-status">
-                    <option value="S">Ativos</option>
-                    <option value="N">Inativos</option>
-                    <option value="TODOS">Todos</option>
-                  </select>
-                </label>
+    const lista = document.getElementById("listaPacientes");
+    if (lista) {
+      lista.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-acao]");
+        if (!btn) return;
 
-                <button type="button" id="btnNovoPaciente" class="btn btn-primary">
-                  + Novo paciente
-                </button>
-              </div>
-            </div>
+        const acao = btn.dataset.acao;
+        const id = btn.dataset.id;
 
-            <div id="listaPacientes" class="lista-pacientes"></div>
+        if (acao === "editar") {
+          const p = pacientesCache.find((x) => x.ID_Paciente === id);
+          if (p) {
+            preencherFormulario(p);
+            abrirDrawer("editar");
+          }
+        } else if (acao === "prontuario") {
+          irParaProntuarioPorId(id);
+        }
+      });
+    }
 
-          </section>
+    const buscaEl = document.getElementById("buscaPaciente");
+    if (buscaEl) {
+      buscaEl.addEventListener("input", renderizarLista);
+      buscaEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          renderizarLista();
+        }
+      });
+    }
 
-          <!-- ========================== DRAWER DO PACIENTE ========================== -->
-          <aside class="pacientes-drawer" id="painelPaciente">
+    document.getElementById("filtroAtivo")?.addEventListener("change", renderizarLista);
+  }
 
-            <div class="drawer-header">
-              <div>
-                <h2 id="tituloFormulario">Novo paciente</h2>
-                <p class="drawer-subtitle">Preencha os dados e salve para registrar o paciente.</p>
-              </div>
-              <button type="button" class="drawer-close" id="btnFecharDrawer">✕</button>
-            </div>
+  /* ============================================================
+     INICIALIZAÇÃO
+  ============================================================ */
 
-            <div class="drawer-body">
+  function init() {
+    carregarPacientes();
+    registrarEventos();
+  }
 
-              <form id="paciente-form">
+  /* API do módulo */
+  return {
+    init,
+  };
+})();
 
-                <input type="hidden" id="idPaciente">
-
-                <div class="grid-2">
-                  <div class="campo">
-                    <label for="nomePaciente">Nome completo</label>
-                    <input type="text" id="nomePaciente" required>
-                  </div>
-
-                  <div class="campo">
-                    <label for="dataNascimento">Data de nascimento</label>
-                    <input type="date" id="dataNascimento">
-                  </div>
-                </div>
-
-                <div class="grid-3">
-                  <div class="campo">
-                    <label for="sexo">Sexo</label>
-                    <select id="sexo">
-                      <option value="">Selecione</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Feminino</option>
-                    </select>
-                  </div>
-
-                  <div class="campo">
-                    <label for="cpf">CPF</label>
-                    <input type="text" id="cpf" maxlength="14">
-                  </div>
-
-                  <div class="campo">
-                    <label for="rg">RG</label>
-                    <input type="text" id="rg">
-                  </div>
-                </div>
-
-                <div class="grid-2">
-                  <div class="campo">
-                    <label for="telefone1">Telefone 1</label>
-                    <input type="tel" id="telefone1">
-                  </div>
-
-                  <div class="campo">
-                    <label for="telefone2">Telefone 2</label>
-                    <input type="tel" id="telefone2">
-                  </div>
-                </div>
-
-                <div class="campo">
-                  <label for="email">E-mail</label>
-                  <input type="email" id="email">
-                </div>
-
-                <div class="grid-2">
-                  <div class="campo">
-                    <label for="enderecoRua">Rua</label>
-                    <input type="text" id="enderecoRua">
-                  </div>
-
-                  <div class="campo">
-                    <label for="enderecoNumero">Número</label>
-                    <input type="text" id="enderecoNumero">
-                  </div>
-                </div>
-
-                <div class="grid-3">
-                  <div class="campo">
-                    <label for="enderecoBairro">Bairro</label>
-                    <input type="text" id="enderecoBairro">
-                  </div>
-
-                  <div class="campo">
-                    <label for="enderecoCidade">Cidade</label>
-                    <input type="text" id="enderecoCidade">
-                  </div>
-
-                  <div class="campo">
-                    <label for="enderecoUF">UF</label>
-                    <input type="text" id="enderecoUF" maxlength="2">
-                  </div>
-                </div>
-
-                <div class="campo">
-                  <label for="enderecoCEP">CEP</label>
-                  <input type="text" id="enderecoCEP" maxlength="9">
-                </div>
-
-                <div class="campo">
-                  <label for="alergias">Alergias</label>
-                  <textarea id="alergias"></textarea>
-                </div>
-
-                <div class="campo">
-                  <label for="medicacoesEmUso">Medicações em uso</label>
-                  <textarea id="medicacoesEmUso"></textarea>
-                </div>
-
-                <div class="campo">
-                  <label for="doencasCronicas">Doenças crônicas</label>
-                  <textarea id="doencasCronicas"></textarea>
-                </div>
-
-                <div class="campo">
-                  <label for="obsImportantes">Observações importantes</label>
-                  <textarea id="obsImportantes"></textarea>
-                </div>
-
-                <div class="grid-3">
-                  <div class="campo">
-                    <label for="planoSaude">Plano de saúde</label>
-                    <input type="text" id="planoSaude">
-                  </div>
-
-                  <div class="campo">
-                    <label for="numeroCarteirinha">Nº carteirinha</label>
-                    <input type="text" id="numeroCarteirinha">
-                  </div>
-
-                  <div class="campo">
-                    <label for="validadeCarteirinha">Validade carteirinha</label>
-                    <input type="month" id="validadeCarteirinha">
-                  </div>
-                </div>
-
-                <div class="campo">
-                  <label for="ativo">Status</label>
-                  <select id="ativo">
-                    <option value="S">Ativo</option>
-                    <option value="N">Inativo</option>
-                  </select>
-                </div>
-
-                <div class="acoes-form">
-                  <button type="button" id="btnCancelarEdicao" class="btn btn-secondary">Limpar</button>
-
-                  <div class="acoes-form-right">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                    <button type="button" id="btnSalvarIrProntuario" class="btn btn-secondary">
-                      Salvar e ir para Prontuário
-                    </button>
-                  </div>
-                </div>
-
-              </form>
-
-              <div id="mensagemStatus" class="mensagem-status" hidden></div>
-
-            </div> <!-- /drawer-body -->
-          </aside>
-
-          <!-- ===== BACKDROP DO DRAWER ===== -->
-          <div class="drawer-backdrop" id="backdropPaciente"></div>
-
-        </div> <!-- /pacientes-main -->
-
-      </main>
-
-    </div> <!-- /app-content -->
-
-  </div> <!-- /app -->
-
-</body>
-</html>
+/* ============================================================
+   WRAPPER DE COMPATIBILIDADE (para HTML antigo)
+============================================================ */
+window.Pacientes = PRONTIO.Modules.Pacientes;
