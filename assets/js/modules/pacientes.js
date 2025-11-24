@@ -219,8 +219,7 @@ PRONTIO.Modules.Pacientes = (() => {
 
       const infoLinha =
         telefone && (cidade || uf)
-          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""
-          }`
+          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""}`
           : telefone || cidade || "";
 
       const statusTag =
@@ -361,3 +360,21 @@ PRONTIO.Modules.Pacientes = (() => {
    WRAPPER DE COMPATIBILIDADE (para HTML antigo)
 ============================================================ */
 window.Pacientes = PRONTIO.Modules.Pacientes;
+
+/* ============================================================
+   AUTO-INICIALIZAÇÃO NA VIEW "pacientes"
+   (garante que o módulo ligue sozinho na página correta)
+============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const body = document.body;
+    const page = body && body.dataset ? body.dataset.page : null;
+
+    if (page === "pacientes" && window.PRONTIO?.Modules?.Pacientes?.init) {
+      PRONTIO.Modules.Pacientes.init();
+      console.log("PRONTIO :: Módulo Pacientes inicializado automaticamente (data-page='pacientes').");
+    }
+  } catch (e) {
+    console.error("Erro ao auto-inicializar módulo Pacientes:", e);
+  }
+});
