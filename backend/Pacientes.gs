@@ -1,156 +1,185 @@
 /******************************************************
- * PACIENTES – BACKEND (usa helpers do Code.gs)
- * - Listar (com filtros)
- * - Salvar (inserir/atualizar = upsert)
- * - Obter por ID
+ * PACIENTES – CRUD compatível com pacientes.js
  *
- * Integração com o front:
- *  - Action "pacientes-listar"  → pacientesListar_(body)
- *  - Action "pacientes-salvar"  → pacientesSalvar_(body)
- *  - Action "pacientes-obter"   → pacientesObter_(body)
+ * Aba: CONFIG.ABA_PACIENTES = "Pacientes"
  *
- * Observação importante:
- *  - Seu /assets/js/core/api.js envia:
- *      Pacientes.listar(filtros) → { action: "pacientes-listar", filtros }
- *      Pacientes.salvar(dados)   → { action: "pacientes-salvar", dados }
+ * Cabeçalhos esperados na linha 1:
+ *  ID_Paciente
+ *  DataCadastro
+ *  NomePaciente
+ *  DataNascimento
+ *  Sexo
+ *  CPF
+ *  RG
+ *  Telefone1
+ *  Telefone2
+ *  Email
+ *  EnderecoRua
+ *  EnderecoNumero
+ *  EnderecoBairro
+ *  EnderecoCidade
+ *  EnderecoUF
+ *  EnderecoCEP
+ *  Alergias
+ *  MedicacoesEmUso
+ *  DoencasCronicas
+ *  ObsImportantes
+ *  PlanoSaude
+ *  NumeroCarteirinha
+ *  ValidadeCarteirinha
+ *  Ativo
+ *  DataUltimaConsulta
  ******************************************************/
 
 /**
- * Lista pacientes na aba CONFIG.ABA_PACIENTES
+ * Salvar paciente
+ * Action: "pacientes-salvar"
  *
- * Filtros esperados (em body.filtros):
- *  - busca: string (nome, CPF, telefone, email, RG)
- *  - ativo: "S", "N", "TODOS" (padrão: S)
- *
- * Retorno:
- *  { pacientes: [ ... ] }
- *
- * Code.gs envelopa como:
- *  { ok: true, action: "pacientes-listar", data: { pacientes: [...] } }
+ * Aceita:
+ *  { action:"pacientes-salvar", dados:{ ...campos de paciente.js... } }
+ *  { action:"pacientes-salvar", payload:{ ... } }
+ *  { action:"pacientes-salvar", NomePaciente:"...", ... }
  */
-function pacientesListar_(body) {
-  const sheet = getSheet_(CONFIG.ABA_PACIENTES);
-  let pacientes = listAllRowsAsObjects_(sheet);
+function pacientesSalvar_(body) {
+  const dados = body.dados || body.payload || body || {};
+  const sh = getSheet_(CONFIG.ABA_PACIENTES);
 
-  const filtros = body.filtros || {};
-
-  const busca = String(filtros.busca || filtros.Busca || "")
-    .toLowerCase()
-    .trim();
-
-  let ativo = filtros.ativo || filtros.Ativo || "S";
-
-  // Filtro por status (Ativo)
-  if (ativo && ativo !== "TODOS") {
-    pacientes = pacientes.filter(p => {
-      const val = String(p.Ativo || p.ativo || "S");
-      return val === ativo;
-    });
+  const lastRow = sh.getLastRow();
+  if (lastRow < 1) {
+    throw new Error("Aba 'Pacientes' sem cabeçalho. Crie a linha 1 com os nomes de colunas.");
   }
 
-  // Filtro de busca (nome, CPF, RG, telefones, email)
-  if (busca) {
-    pacientes = pacientes.filter(p => {
-      const nome =
-        String(p.NomePaciente || p.NomeCompleto || p.nome || "").toLowerCase();
-      const cpf = String(p.CPF || p.cpf || "").toLowerCase();
-      const rg = String(p.RG || p.rg || "").toLowerCase();
-      const tel1 = String(p.Telefone1 || p.telefone1 || "").toLowerCase();
-      const tel2 = String(p.Telefone2 || p.telefone2 || "").toLowerCase();
-      const email = String(p.Email || p.email || "").toLowerCase();
+  const lastCol = sh.getLastColumn();
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
 
-      return (
-        nome.includes(busca) ||
-        cpf.includes(busca) ||
-        rg.includes(busca) ||
-        tel1.includes(busca) ||
-        tel2.includes(busca) ||
-        email.includes(busca)
-      );
-    });
+  const idxId           = header.indexOf("ID_Paciente");
+  const idxDataCadastro = header.indexOf("DataCadastro");
+
+  if (idxId === -1) {
+    throw new Error("Coluna 'ID_Paciente' não encontrada na aba 'Pacientes'.");
   }
 
-  return { pacientes };
+  if (!dados.NomePaciente && !dados.ID_Paciente) {
+    throw new Error("Campo 'NomePaciente' é obrigatório para novo paciente.");
+  }
+
+  let idPaciente = (dados.ID_Paciente || dados.idPaciente || "").toString().trim();
+  let rowValues;
+  let targetRow = -1;
+
+  // Edição: tentar localizar pela coluna ID_Paciente
+  if (idPaciente) {
+    const dataPlanilha = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    for (let i = 0; i < dataPlanilha.length; i++) {
+      const linha = dataPlanilha[i];
+      if (String(linha[idxId]).trim() === idPaciente) {
+        targetRow = i + 2;
+        rowValues = linha.slice();
+        break;
+      }
+    }
+  }
+
+  const isNovo = targetRow === -1;
+
+  if (isNovo) {
+    idPaciente = gerarId_();
+    rowValues = new Array(header.length).fill("");
+    rowValues[idxId] = idPaciente;
+
+    if (idxDataCadastro > -1) {
+      rowValues[idxDataCadastro] = new Date();
+    }
+  }
+
+  // Copia dados para as colunas com o mesmo nome
+  for (let i = 0; i < header.length; i++) {
+    const colName = header[i];
+    if (!colName) continue;
+
+    if (colName === "ID_Paciente") continue;
+    if (colName === "DataCadastro" && isNovo) continue; // já setado
+
+    if (Object.prototype.hasOwnProperty.call(dados, colName)) {
+      rowValues[i] = dados[colName];
+    }
+  }
+
+  // Se não veio "Ativo" em novo cadastro, assume "S"
+  const idxAtivo = header.indexOf("Ativo");
+  if (isNovo && idxAtivo > -1 && !rowValues[idxAtivo]) {
+    rowValues[idxAtivo] = "S";
+  }
+
+  // Grava
+  if (isNovo) {
+    sh.appendRow(rowValues);
+  } else {
+    sh.getRange(targetRow, 1, 1, lastCol).setValues([rowValues]);
+  }
+
+  const pacienteObj = rowToObject_(header, rowValues);
+
+  return {
+    idPaciente: idPaciente,
+    paciente: pacienteObj,
+    isNovo: isNovo
+  };
 }
 
 /**
- * Salvar paciente (insert/update)
+ * Listar pacientes
+ * Action: "pacientes-listar"
  *
- * O frontend atualmente envia:
- *   PacientesApi.salvar(dados) → body.dados
- *
- * Também aceitamos:
- *   body.paciente (compatibilidade)
- *   ou o próprio body
- *
- * Regras:
- *  - Se não vier ID_Paciente → gera um novo (paciente novo)
- *  - Se vier ID_Paciente → atualiza a linha existente
+ * Retorno (injetado em doPost):
+ *  { ok:true, total, pacientes, data:{total,pacientes} }
  */
-function pacientesSalvar_(body) {
-  // Flexível para aceitar body.dados, body.paciente ou o próprio body
-  const dados = body.dados || body.paciente || body || {};
-  const sheet = getSheet_(CONFIG.ABA_PACIENTES);
-
-  // ID do paciente enviado
-  const idAtual =
-    dados.ID_Paciente || dados.idPaciente || dados.IdPaciente || dados.id || "";
-
-  const ehNovo = !idAtual;
-
-  // Campos extras adicionados somente se for novo paciente
-  const extrasNovo = {};
-
-  if (ehNovo) {
-    extrasNovo.ID_Paciente = gerarId_();                // ID automático PRONTIO
-    extrasNovo.DataCadastro = formatDate_(new Date());  // campo opcional
-    extrasNovo.Ativo = dados.Ativo || dados.ativo || "S"; // S=sim, N=não
-  }
-
-  // Insere ou atualiza de acordo com o ID_Paciente
-  // upsertRow_ deve ser implementado em outro módulo (por ex. Util.gs)
-  const resultado = upsertRow_(
-    sheet,
-    "ID_Paciente",
-    idAtual,
-    dados,
-    extrasNovo
-  );
-
-  const linha = resultado.row;
-
-  // Pega valores completos da linha salva para devolver ao frontend
-  const lastCol = sheet.getLastColumn();
-  const header = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-  const valores = sheet.getRange(linha, 1, 1, lastCol).getValues()[0];
-
-  const pacienteSalvo = rowToObject_(header, valores);
-
-  return { paciente: pacienteSalvo };
+function pacientesListar_(body) {
+  const sh = getSheet_(CONFIG.ABA_PACIENTES);
+  const lista = listAllRowsAsObjects_(sh);
+  return {
+    total: lista.length,
+    pacientes: lista
+  };
 }
 
 /**
  * Obter paciente por ID
+ * Action: "pacientes-obter"
  *
  * Aceita:
- *  - body.ID_Paciente
- *  - body.idPaciente
- *  - body.id  (fallback)
- *
- * Retorno:
- *  { paciente: {...} } ou { paciente: null }
+ *  { action:"pacientes-obter", idPaciente:"..." }
+ *  { action:"pacientes-obter", payload:{ idPaciente:"..." } }
  */
 function pacientesObter_(body) {
-  const id =
-    body.ID_Paciente || body.idPaciente || body.IdPaciente || body.id;
+  const payload = body.payload || body || {};
+  const idPaciente = payload.idPaciente || payload.ID_Paciente;
 
-  if (!id) return { paciente: null };
+  if (!idPaciente) {
+    throw new Error("idPaciente é obrigatório em 'pacientes-obter'.");
+  }
 
-  const sheet = getSheet_(CONFIG.ABA_PACIENTES);
-  const dados = listAllRowsAsObjects_(sheet);
+  const sh = getSheet_(CONFIG.ABA_PACIENTES);
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) {
+    return { paciente: null };
+  }
 
-  const paciente =
-    dados.find(p => String(p.ID_Paciente) === String(id)) || null;
+  const lastCol = sh.getLastColumn();
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const idxId = header.indexOf("ID_Paciente");
+  if (idxId === -1) {
+    throw new Error("Coluna 'ID_Paciente' não encontrada na aba 'Pacientes'.");
+  }
 
-  return { paciente };
+  const dadosPlanilha = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  for (let i = 0; i < dadosPlanilha.length; i++) {
+    const linha = dadosPlanilha[i];
+    if (String(linha[idxId]).trim() === String(idPaciente).trim()) {
+      const obj = rowToObject_(header, linha);
+      return { paciente: obj };
+    }
+  }
+
+  return { paciente: null };
 }

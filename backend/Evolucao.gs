@@ -1,121 +1,217 @@
 /******************************************************
- * EVOLUÇÃO / CONSULTAS – BACKEND PRONTIO
- * Aba: CONFIG.ABA_EVOLUCAO ("Consultas")
+ * EVOLUÇÃO / CONSULTAS – compatível com evolucao.js
  *
- * Colunas esperadas:
- * ID_Evolucao | Data | Hora | ID_Paciente | NomePaciente |
- * Tipo | Evolucao | CriadoEm
+ * Aba: CONFIG.ABA_EVOLUCAO = "Consultas"
+ *
+ * Cabeçalhos esperados na linha 1:
+ *  ID_Consulta
+ *  Data
+ *  Hora
+ *  ID_Paciente
+ *  NomePaciente
+ *  Tipo
+ *  Evolucao
+ *  CriadoEm
  ******************************************************/
 
 /**
- * Salvar evolução (novo ou edição)
+ * Salvar evolução
+ * Action: "evolucao-salvar"
  *
- * Front-end envia:
- * {
- *   action: "evolucao-salvar",
- *   dados: {
- *      ID_Evolucao,
- *      ID_Paciente,
- *      NomePaciente,
- *      Tipo,
- *      Evolucao,
- *      Data (opcional),
- *      Hora (opcional)
- *   }
- * }
+ * Aceita:
+ *  { action:"evolucao-salvar", dados:{ idPaciente, NomePaciente, Data, Hora, Tipo, Evolucao } }
+ *  { action:"evolucao-salvar", payload:{...} }
+ *  { action:"evolucao-salvar", idPaciente:"...", Evolucao:"...", ... }
  */
 function evolucaoSalvar_(body) {
-  const dados = body.dados || body.evolucao || body;
-  const sheet = getSheet_(CONFIG.ABA_EVOLUCAO);
+  const dados = body.dados || body.payload || body || {};
+  const sh = getSheet_(CONFIG.ABA_EVOLUCAO);
 
-  const agora = new Date();
+  const lastRow = sh.getLastRow();
+  if (lastRow < 1) {
+    throw new Error("Aba 'Consultas' sem cabeçalho. Crie a linha 1 com os nomes de colunas.");
+  }
 
-  // ID novo ou existente
-  let id = dados.ID_Evolucao || dados.id || "";
-  if (!id) id = gerarId_();
+  const lastCol = sh.getLastColumn();
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
 
-  // Se o usuário não enviar Data e Hora, preencher com agora
-  const dataFinal =
-    dados.Data ||
-    dados.data ||
-    Utilities.formatDate(agora, "America/Sao_Paulo", "yyyy-MM-dd");
+  const idxIdConsulta  = header.indexOf("ID_Consulta");
+  const idxIdPaciente  = header.indexOf("ID_Paciente");
+  const idxData        = header.indexOf("Data");
+  const idxHora        = header.indexOf("Hora");
+  const idxCriadoEm    = header.indexOf("CriadoEm");
 
-  const horaFinal =
-    dados.Hora ||
-    dados.hora ||
-    Utilities.formatDate(agora, "America/Sao_Paulo", "HH:mm");
+  if (idxIdConsulta === -1 || idxIdPaciente === -1) {
+    throw new Error("Colunas 'ID_Consulta' e/ou 'ID_Paciente' não encontradas na aba 'Consultas'.");
+  }
 
-  const obj = {
-    ID_Evolucao:  id,
-    Data:         dataFinal,
-    Hora:         horaFinal,
-    ID_Paciente:  dados.ID_Paciente || dados.idPaciente || "",
-    NomePaciente: dados.NomePaciente || dados.nomePaciente || "",
-    Tipo:         dados.Tipo || dados.tipo || "",
-    Evolucao:     dados.Evolucao || dados.evolucao || "",
-    CriadoEm:     dados.CriadoEm ||
-                  Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss")
-  };
+  const idPacienteCampo =
+    dados.idPaciente || dados.ID_Paciente || dados.IdPaciente || "";
+  if (!idPacienteCampo) {
+    throw new Error("idPaciente é obrigatório em 'evolucao-salvar'.");
+  }
 
-  // Upsert
-  const result = upsertRow_(
-    sheet,
-    "ID_Evolucao",
-    id,
-    obj,
-    {
-      Data:     dataFinal,
-      Hora:     horaFinal,
-      CriadoEm: Utilities.formatDate(agora, "America/Sao_Paulo", "dd/MM/yyyy HH:mm:ss")
+  if (!dados.Evolucao && !dados.ID_Consulta) {
+    throw new Error("Para nova evolução é necessário pelo menos o campo 'Evolucao'.");
+  }
+
+  let idConsulta = (dados.ID_Consulta || dados.idConsulta || "").toString().trim();
+  let rowValues;
+  let targetRow = -1;
+
+  // Edição: procurar pelo ID_Consulta
+  if (idConsulta) {
+    const dadosPlanilha = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    for (let i = 0; i < dadosPlanilha.length; i++) {
+      const linha = dadosPlanilha[i];
+      if (String(linha[idxIdConsulta]).trim() === idConsulta) {
+        targetRow = i + 2;
+        rowValues = linha.slice();
+        break;
+      }
     }
-  );
+  }
 
-  // Registrar no prontuário
-  registrarNoProntuario_(
-    obj.ID_Paciente,
-    "evolucao",
-    obj.Tipo || "Evolução Clínica",
-    obj.Evolucao || ""
-  );
+  const isNovo = targetRow === -1;
+
+  if (isNovo) {
+    idConsulta = gerarId_();
+    rowValues = new Array(header.length).fill("");
+    rowValues[idxIdConsulta] = idConsulta;
+    rowValues[idxIdPaciente] = idPacienteCampo;
+  }
+
+  // Copia campos pelo nome da coluna
+  for (let i = 0; i < header.length; i++) {
+    const colName = header[i];
+    if (!colName) continue;
+
+    if (colName === "ID_Consulta") continue;
+    if (colName === "ID_Paciente") continue;
+    if (colName === "CriadoEm" && isNovo) continue; // trata logo abaixo
+
+    if (Object.prototype.hasOwnProperty.call(dados, colName)) {
+      rowValues[i] = dados[colName];
+    }
+  }
+
+  // Se for nova evolução e não vierem Data/Hora, usar data/hora atuais
+  const tz = Session.getScriptTimeZone() || "America/Sao_Paulo";
+
+  if (isNovo && idxData > -1 && !rowValues[idxData]) {
+    rowValues[idxData] = Utilities.formatDate(new Date(), tz, "yyyy-MM-dd");
+  }
+  if (isNovo && idxHora > -1 && !rowValues[idxHora]) {
+    rowValues[idxHora] = Utilities.formatDate(new Date(), tz, "HH:mm");
+  }
+  if (isNovo && idxCriadoEm > -1 && !rowValues[idxCriadoEm]) {
+    rowValues[idxCriadoEm] = new Date();
+  }
+
+  // Grava
+  if (isNovo) {
+    sh.appendRow(rowValues);
+  } else {
+    sh.getRange(targetRow, 1, 1, lastCol).setValues([rowValues]);
+  }
+
+  const evoObj = rowToObject_(header, rowValues);
+
+  // Atualiza DataUltimaConsulta na aba Pacientes (se existir)
+  try {
+    atualizarDataUltimaConsulta_(idPacienteCampo, rowValues[idxData] || null);
+  } catch (e) {
+    Logger.log("Erro ao atualizar DataUltimaConsulta: " + e);
+  }
+
+  // Registra no Prontuário (timeline)
+  try {
+    const nome = dados.NomePaciente || evoObj.NomePaciente || "";
+    const texto = dados.Evolucao || evoObj.Evolucao || "";
+    registrarNoProntuario_(
+      idPacienteCampo,
+      "evolucao",
+      nome ? "Evolução - " + nome : "Evolução clínica",
+      texto
+    );
+  } catch (e2) {
+    Logger.log("Erro ao registrar no prontuário: " + e2);
+  }
 
   return {
-    ID_Evolucao: id,
-    row: result.row
+    idEvolucao: idConsulta, // mantém o nome "idEvolucao" se o front quiser usar
+    evolucao: evoObj,
+    isNovo: isNovo
   };
 }
 
-
 /**
- * Listar evoluções de um paciente (ordenadas por data/hora desc)
- *
- * Actions aceitas:
- *   "evolucao-listar-paciente"
- *   "evolucao-por-paciente"
+ * Lista evoluções de um paciente
+ * Actions: "evolucao-listar-paciente" ou "evolucao-por-paciente"
  */
 function evolucaoListarPorPaciente_(body) {
+  const payload = body.payload || body || {};
   const idPaciente =
-    body.ID_Paciente ||
-    body.idPaciente ||
-    body.idpaciente;
+    payload.idPaciente || payload.ID_Paciente || payload.IdPaciente;
 
   if (!idPaciente) {
-    throw new Error("ID_Paciente é obrigatório em evolucao-listar-paciente.");
+    throw new Error("idPaciente é obrigatório em 'evolucao-listar-paciente'.");
   }
 
-  const sheet = getSheet_(CONFIG.ABA_EVOLUCAO);
-  const lista = listAllRowsAsObjects_(sheet);
+  const sh = getSheet_(CONFIG.ABA_EVOLUCAO);
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) {
+    return { idPaciente, total: 0, lista: [], evolucoes: [] };
+  }
 
-  // Filtrar evoluções do paciente
-  const filtrados = lista.filter(item =>
-    String(item.ID_Paciente || "") === String(idPaciente)
-  );
+  const lastCol = sh.getLastColumn();
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const idxIdPaciente = header.indexOf("ID_Paciente");
+  if (idxIdPaciente === -1) {
+    throw new Error("Coluna 'ID_Paciente' não encontrada na aba 'Consultas'.");
+  }
 
-  // Ordenar por Data e Hora (mais recente primeiro)
-  filtrados.sort((a, b) => {
-    const d1 = new Date(a.Data + " " + a.Hora);
-    const d2 = new Date(b.Data + " " + b.Hora);
-    return d2 - d1;
-  });
+  const dadosPlanilha = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  const lista = [];
 
-  return { evolucao: filtrados };
+  for (let i = 0; i < dadosPlanilha.length; i++) {
+    const linha = dadosPlanilha[i];
+    if (String(linha[idxIdPaciente]).trim() === String(idPaciente).trim()) {
+      lista.push(rowToObject_(header, linha));
+    }
+  }
+
+  return {
+    idPaciente: idPaciente,
+    total: lista.length,
+    lista: lista,
+    evolucoes: lista
+  };
+}
+
+/**
+ * Atualiza DataUltimaConsulta na aba Pacientes, se a coluna existir.
+ */
+function atualizarDataUltimaConsulta_(idPaciente, dataISO) {
+  const sh = getSheet_(CONFIG.ABA_PACIENTES);
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) return;
+
+  const lastCol = sh.getLastColumn();
+  const header = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  const idxId  = header.indexOf("ID_Paciente");
+  const idxDUC = header.indexOf("DataUltimaConsulta");
+  if (idxId === -1 || idxDUC === -1) return;
+
+  const dadosPac = sh.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  for (let i = 0; i < dadosPac.length; i++) {
+    const linha = dadosPac[i];
+    if (String(linha[idxId]).trim() === String(idPaciente).trim()) {
+      const rowIndex = i + 2;
+      // Usa data atual como "última consulta"
+      sh.getRange(rowIndex, idxDUC + 1).setValue(new Date());
+      break;
+    }
+  }
 }
