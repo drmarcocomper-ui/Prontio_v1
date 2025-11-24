@@ -23,20 +23,23 @@
 
 window.PRONTIO = window.PRONTIO || {};
 
-PRONTIO.Config = PRONTIO.Config || {};
-PRONTIO.API = PRONTIO.API || {};
+PRONTIO.Config  = PRONTIO.Config  || {};
+PRONTIO.API     = PRONTIO.API     || {};
 PRONTIO.Storage = PRONTIO.Storage || {};
-PRONTIO.UI = PRONTIO.UI || {};
-PRONTIO.Forms = PRONTIO.Forms || {};
-PRONTIO.Utils = PRONTIO.Utils || {};
-PRONTIO.App = PRONTIO.App || {};
+PRONTIO.UI      = PRONTIO.UI      || {};
+PRONTIO.Forms   = PRONTIO.Forms   || {};
+PRONTIO.Utils   = PRONTIO.Utils   || {};
+PRONTIO.App     = PRONTIO.App     || {};
 
 /* ===========================
    CONFIGURAÇÃO GERAL
 =========================== */
 
-// URL do Web App do Google Apps Script
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHPFcc6g2RfN_xMOveo_D2H430usnr9FfNKEpYzLGW3uFBq0nFuzhseGgG3USnzMcixg/exec";
+// URL do Web App do Google Apps Script (NOVA URL)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw/exec";
+
+// Deixa disponível também em PRONTIO.Config
+PRONTIO.Config.SCRIPT_URL = SCRIPT_URL;
 
 /* ===========================
    CHAMADA PADRÃO À API
@@ -46,7 +49,11 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHPFcc6g2RfN_xMOveo
  * options:
  *   - showLoading: boolean (default true)
  *
- * Retorna sempre json.data (campo "data" do backend)
+ * IMPORTANTE:
+ * - Envia o objeto payload direto como JSON para o backend:
+ *   { action: "pacientes-listar", filtros: {...} }
+ * - Retorna o JSON COMPLETO vindo do backend:
+ *   { ok: true, action: "pacientes-listar", data: {...} }
  */
 PRONTIO.API.call = async function (payload, options = {}) {
   const { showLoading: show = true } = options;
@@ -56,8 +63,8 @@ PRONTIO.API.call = async function (payload, options = {}) {
   try {
     const response = await fetch(PRONTIO.Config.SCRIPT_URL, {
       method: "POST",
-      // sem headers → evita preflight CORS
-      body: JSON.stringify(payload),
+      // sem headers → evita preflight CORS; o backend lê e.postData.contents
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -66,12 +73,16 @@ PRONTIO.API.call = async function (payload, options = {}) {
 
     const json = await response.json();
 
-    if (!json.ok) {
+    // Backend padrão PRONTIO (Code.gs) sempre retorna:
+    // { ok: boolean, action: string, data: {...}, ... }
+    if (json && json.ok === false) {
       const msg = json.erro || "Erro inesperado ao processar a requisição.";
       throw new Error(msg);
     }
 
-    return json.data; // PRONTIO sempre usa esse "data"
+    // Retornamos o JSON completo para os módulos (agenda.js, pacientes.js, etc.)
+    return json;
+
   } catch (error) {
     console.error("PRONTIO – API ERROR:", error);
     PRONTIO.UI.showToast("Erro: " + error.message, "erro");
@@ -87,7 +98,7 @@ PRONTIO.API.call = async function (payload, options = {}) {
 
 PRONTIO.Storage.keys = {
   PACIENTE: "PRONTIO_PACIENTE",
-  CONFIG: "PRONTIO_CONFIG",
+  CONFIG: "PRONTIO_CONFIG"
 };
 
 /* ===========================
@@ -232,10 +243,8 @@ PRONTIO.Utils.calcularIdade = function (dataISO) {
 window.callApi = PRONTIO.API.call;
 
 // Storage – paciente
-window.salvarPacienteSelecionado =
-  PRONTIO.Storage.salvarPacienteSelecionado;
-window.carregarPacienteSelecionado =
-  PRONTIO.Storage.carregarPacienteSelecionado;
+window.salvarPacienteSelecionado = PRONTIO.Storage.salvarPacienteSelecionado;
+window.carregarPacienteSelecionado = PRONTIO.Storage.carregarPacienteSelecionado;
 window.limparPacienteSelecionado = PRONTIO.Storage.limparPacienteSelecionado;
 
 // Storage – config
@@ -262,8 +271,7 @@ window.calcularIdade = PRONTIO.Utils.calcularIdade;
 =========================== */
 
 PRONTIO.App.init = PRONTIO.App.init || function () {
-  // Ponto de entrada global, se você quiser algo ao carregar qualquer página
-  // Exemplo futuro: PRONTIO.App.initMenu();
+  // Ponto de entrada global, se você quiser algo ao carregar qualquer página.
 };
 
 document.addEventListener("DOMContentLoaded", () => {

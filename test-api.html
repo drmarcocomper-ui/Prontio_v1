@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste API PRONTIO (core/api.js)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f8;
+      padding: 20px;
+    }
+    .card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    p.small {
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 4px 4px 12px 0;
+      border-radius: 6px;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    pre {
+      background: #0b1020;
+      color: #e5e7eb;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin-top: 10px;
+    }
+    code {
+      background: #e5e7eb;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Teste de Conexão com Backend PRONTIO</h1>
+    <p class="small">
+      Esta página usa <code>assets/js/core/api-core.js</code> +
+      <code>assets/js/core/api.js</code>.
+      Serve só para validar se o front está falando com o <code>Code.gs</code>.
+    </p>
+
+    <div>
+      <button id="btnPacientesListar">Testar Pacientes.listar</button>
+      <button id="btnAgendaListar">Testar Agenda.listar</button>
+    </div>
+
+    <pre id="output">Clique em um botão para ver a resposta...</pre>
+  </div>
+
+  <!-- 1) camada base (callApi / PRONTIO.API.call) -->
+  <script src="assets/js/core/api-core.js"></script>
+  <!-- 2) seu arquivo atual com PRONTIO.API.Pacientes, Agenda, etc. -->
+  <script src="assets/js/core/api.js"></script>
+
+  <script>
+    const out = document.getElementById("output");
+
+    function show(label, result) {
+      out.textContent = label + "\n\n" + JSON.stringify(result, null, 2);
+    }
+
+    document.getElementById("btnPacientesListar").addEventListener("click", async () => {
+      out.textContent = "Chamando PRONTIO.API.Pacientes.listar...";
+      try {
+        const res = await PRONTIO.API.Pacientes.listar({});
+        show("Resposta de Pacientes.listar:", res);
+      } catch (err) {
+        show("Erro ao chamar Pacientes.listar:", { error: err.message });
+      }
+    });
+
+    document.getElementById("btnAgendaListar").addEventListener("click", async () => {
+      out.textContent = "Chamando PRONTIO.API.Agenda.listar...";
+      try {
+        const res = await PRONTIO.API.Agenda.listar({});
+        show("Resposta de Agenda.listar:", res);
+      } catch (err) {
+        show("Erro ao chamar Agenda.listar:", { error: err.message });
+      }
+    });
+  </script>
+</body>
+</html>

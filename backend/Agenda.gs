@@ -2,20 +2,46 @@
  * AGENDA – BACKEND PRONTIO
  * Aba: CONFIG.ABA_AGENDA
  *
- * Colunas esperadas:
- * ID_Agenda | ID_Paciente | NomePaciente | Data |
- * HoraInicio | HoraFim | Tipo | Status | Observacoes
+ * Colunas esperadas na aba de planilha "Agenda":
+ *  ID_Agenda | ID_Paciente | NomePaciente | Data |
+ *  HoraInicio | HoraFim | Tipo | Status | Observacoes
+ *
+ * Integração com o front:
+ *  - Action "agenda-salvar"  → agendaSalvar_(body)
+ *  - Action "agenda-listar"  → agendaListar_(body)
+ *  - Action "agenda-listar-data"      → agendaListarPorData_(body)
+ *  - Action "agenda-listar-paciente"  → agendaListarPorPaciente_(body)
+ *  - Action "agenda-atualizar-status" → agendaAtualizarStatus_(body)
+ *
+ * O roteamento dessas actions é feito em Code.gs (doPost).
  ******************************************************/
 
 /**
- * Salvar agendamento (novo ou edição)
- * Recebe dados em body.dados ou body.agenda
+ * Salvar agendamento (novo ou edição).
+ *
+ * Backend espera receber:
+ *  body.dados OU body.agenda OU o próprio body com:
+ *   - ID_Agenda (opcional, para edição)
+ *   - ID_Paciente
+ *   - NomePaciente
+ *   - Data (AAAA-MM-DD)
+ *   - HoraInicio (HH:MM)
+ *   - HoraFim (HH:MM)
+ *   - Tipo
+ *   - Status
+ *   - Observacoes
+ *
+ * Retorno (consumido por Code.gs):
+ *   { ID_Agenda, row }
+ *
+ * Code.gs depois envelopa em:
+ *   { ok: true, action: "agenda-salvar", data: { ID_Agenda, row } }
  */
 function agendaSalvar_(body) {
   const dados = body.dados || body.agenda || body;
   const sheet = getSheet_(CONFIG.ABA_AGENDA);
 
-  // Garante ID
+  // Garante ID (novo ou existente)
   let id = dados.ID_Agenda || dados.idAgenda || dados.id || "";
   if (!id) id = gerarId_();
 
@@ -34,17 +60,22 @@ function agendaSalvar_(body) {
   let rowIndex = 0;
 
   if (idCol > 0) {
-    const ids = sheet.getRange(2, idCol, Math.max(sheet.getLastRow() - 1, 0)).getValues();
-    for (let i = 0; i < ids.length; i++) {
-      if (String(ids[i][0]) === String(id)) {
-        rowIndex = i + 2;
-        break;
+    const totalLinhasDados = Math.max(sheet.getLastRow() - 1, 0);
+    if (totalLinhasDados > 0) {
+      const ids = sheet.getRange(2, idCol, totalLinhasDados).getValues();
+      for (let i = 0; i < ids.length; i++) {
+        if (String(ids[i][0]) === String(id)) {
+          rowIndex = i + 2; // +2 por causa do cabeçalho
+          break;
+        }
       }
     }
   }
 
+  // Se não encontrou linha existente, usa próxima linha após o último registro
   if (!rowIndex) {
-    rowIndex = sheet.getLastRow() + 1;
+    const lastRow = sheet.getLastRow();
+    rowIndex = lastRow >= 1 ? lastRow + 1 : 2; // garantindo espaço após o cabeçalho
   }
 
   const rowValues = new Array(lastCol).fill("");
@@ -89,12 +120,15 @@ function agendaSalvar_(body) {
         break;
 
       default:
+        // Colunas extras não utilizadas ficam em branco por padrão
         rowValues[c] = "";
     }
   });
 
+  // Grava na planilha
   sheet.getRange(rowIndex, 1, 1, lastCol).setValues([rowValues]);
 
+  // Retorno básico, que será envelopado em Code.gs
   return {
     ID_Agenda: id,
     row: rowIndex
@@ -104,6 +138,16 @@ function agendaSalvar_(body) {
 /******************************************************
  * LISTAR AGENDA (filtros gerais)
  * Action: "agenda-listar"
+ *
+ * Filtros esperados em body.filtros:
+ *  - data   (AAAA-MM-DD)
+ *  - status ("Agendado", "Confirmado", "Pendente", "Faltou", "TODOS"...)
+ *  - busca  (nome, tipo, observações ou telefone)
+ *
+ * Retorno:
+ *  Array de objetos com as colunas da aba Agenda.
+ * Code.gs envelopa como:
+ *  { ok: true, action, lista, data: lista }
  ******************************************************/
 function agendaListar_(body) {
   const filtros = body.filtros || {};
@@ -150,6 +194,12 @@ function agendaListar_(body) {
 
 /******************************************************
  * LISTAR AGENDA POR DATA
+ * Action: "agenda-listar-data"
+ *
+ * body.Data ou body.data: string (AAAA-MM-DD)
+ *
+ * Retorno:
+ *  Array com os registros da data.
  ******************************************************/
 function agendaListarPorData_(body) {
   const data = body.Data || body.data;
@@ -163,6 +213,12 @@ function agendaListarPorData_(body) {
 
 /******************************************************
  * LISTAR AGENDA POR PACIENTE
+ * Action: "agenda-listar-paciente"
+ *
+ * body.ID_Paciente ou body.idPaciente
+ *
+ * Retorno:
+ *  Array com todos os agendamentos daquele paciente.
  ******************************************************/
 function agendaListarPorPaciente_(body) {
   const id = body.ID_Paciente || body.idPaciente;
@@ -176,6 +232,13 @@ function agendaListarPorPaciente_(body) {
 
 /******************************************************
  * ATUALIZAR STATUS DO AGENDAMENTO
+ * Action: "agenda-atualizar-status"
+ *
+ * body.ID_Agenda / body.idAgenda
+ * body.Status / body.status
+ *
+ * Retorno:
+ *  { ID_Agenda, Status }
  ******************************************************/
 function agendaAtualizarStatus_(body) {
   const idAgenda = body.ID_Agenda || body.idAgenda;

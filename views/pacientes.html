@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRONTIO – Pacientes</title>
 
-    <!-- PWA -->
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#4b6fff">
 
@@ -28,12 +28,20 @@
   <!-- ======================= CSS ÚNICO DO SISTEMA ======================== -->
   <link rel="stylesheet" href="/assets/css/main.css" />
 
-    <!-- CSS DO MÓDULO (se houver) -->
+  <!-- CSS DO MÓDULO (se houver) -->
   <link rel="stylesheet" href="/assets/css/modules/pacientes.css">
 
   <!-- ======================= JS BASE DO PRONTIO ========================= -->
+  <!-- 1) camada base da API: define PRONTIO.API.call / window.callApi com a URL do Apps Script -->
+  <script src="/assets/js/core/api-core.js" defer></script>
+
+  <!-- 2) script base global -->
   <script src="/assets/js/core/script.js" defer></script>
+
+  <!-- 3) camada de API por módulo (PacientesApi, AgendaApi, etc.) -->
   <script src="/assets/js/core/api.js" defer></script>
+
+  <!-- 4) utilitários e layout -->
   <script src="/assets/js/core/utils.js" defer></script>
   <script src="/assets/js/core/layout.js" defer></script>
   <script src="/assets/js/core/print.js" defer></script>

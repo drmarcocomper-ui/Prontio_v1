@@ -33,15 +33,24 @@
   <link rel="stylesheet" href="/assets/css/modules/prontuario.css">
 
   <!-- ======================= JS BASE DO PRONTIO ========================= -->
+  <!-- 1) camada base da API: define PRONTIO.API.call / window.callApi com a URL do Apps Script -->
+  <script src="/assets/js/core/api-core.js" defer></script>
+
+  <!-- 2) script base global -->
   <script src="/assets/js/core/script.js" defer></script>
+
+  <!-- 3) camada de API por módulo (PacientesApi, AgendaApi, etc.) -->
   <script src="/assets/js/core/api.js" defer></script>
+
+  <!-- 4) utilitários e layout -->
   <script src="/assets/js/core/utils.js" defer></script>
   <script src="/assets/js/core/layout.js" defer></script>
   <script src="/assets/js/core/print.js" defer></script>
   <script src="/assets/js/core/sidebar-loader.js" defer></script>
 
-  <!-- ======================= JS ESPECÍFICO DO MÓDULO ==================== -->
+  <!-- ======================= JS específico do módulo ==================== -->
   <script src="/assets/js/modules/prontuario.js" defer></script>
+
 </head>
 
 <body data-page="prontuario">

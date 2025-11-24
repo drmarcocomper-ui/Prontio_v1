@@ -1,6 +1,7 @@
 /******************************************************
  * PRONTIO – BACKEND UNIFICADO (Code.gs)
- * Versão com PRONTUÁRIO integrado + Encaminhamento + ProfissionaisDestino
+ * Versão com PRONTUÁRIO integrado + Encaminhamento +
+ * ProfissionaisDestino, Agenda, Pacientes e todos os módulos.
  ******************************************************/
 
 const CONFIG = {
@@ -21,7 +22,7 @@ const CONFIG = {
 };
 
 /******************************************************
- * GET – Teste de saúde da API
+ * GET – Teste rápido de saúde da API
  ******************************************************/
 function doGet(e) {
   const action = e?.parameter?.action;
@@ -40,7 +41,7 @@ function doGet(e) {
 }
 
 /******************************************************
- * POST – Roteador principal
+ * POST – Roteador principal da API
  ******************************************************/
 function doPost(e) {
   try {
@@ -51,13 +52,13 @@ function doPost(e) {
       return jsonError_("Parâmetro 'action' é obrigatório.");
     }
 
-    let data;
+    let data; // resposta da função interna
 
     switch (action) {
 
-      /* -------------------------------
-         PACIENTES
-      --------------------------------*/
+      /***********************
+       * PACIENTES
+       ************************/
       case "pacientes-salvar":
         data = pacientesSalvar_(body);
         break;
@@ -70,16 +71,22 @@ function doPost(e) {
         data = pacientesObter_(body);
         break;
 
-      /* -------------------------------
-         AGENDA
-      --------------------------------*/
+
+      /***********************
+       * AGENDA
+       ************************/
       case "agenda-salvar":
         data = agendaSalvar_(body);
         break;
 
       case "agenda-listar": {
         const lista = agendaListar_(body);
-        return jsonResponse_({ ok: true, action, lista, data: lista });
+        return jsonResponse_({
+          ok: true,
+          action,
+          lista,
+          data: lista
+        });
       }
 
       case "agenda-listar-data":
@@ -94,9 +101,10 @@ function doPost(e) {
         data = agendaAtualizarStatus_(body);
         break;
 
-      /* -------------------------------
-         EVOLUÇÃO
-      --------------------------------*/
+
+      /***********************
+       * EVOLUÇÃO / CONSULTAS
+       ************************/
       case "evolucao-salvar":
         data = evolucaoSalvar_(body);
         break;
@@ -106,9 +114,10 @@ function doPost(e) {
         data = evolucaoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         RECEITAS
-      --------------------------------*/
+
+      /***********************
+       * RECEITAS
+       ************************/
       case "receita-salvar":
         data = receitaSalvar_(body);
         break;
@@ -118,16 +127,18 @@ function doPost(e) {
         data = receitaListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         MEDICAMENTOS
-      --------------------------------*/
+
+      /***********************
+       * MEDICAMENTOS
+       ************************/
       case "medicamentos-listar":
         data = medicamentosListar_(body);
         break;
 
-      /* -------------------------------
-         EXAMES
-      --------------------------------*/
+
+      /***********************
+       * EXAMES
+       ************************/
       case "exame-salvar":
         data = exameSalvar_(body);
         break;
@@ -137,9 +148,10 @@ function doPost(e) {
         data = exameListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         LAUDOS
-      --------------------------------*/
+
+      /***********************
+       * LAUDOS
+       ************************/
       case "laudo-salvar":
         data = laudoSalvar_(body);
         break;
@@ -149,9 +161,10 @@ function doPost(e) {
         data = laudoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         ATESTADOS
-      --------------------------------*/
+
+      /***********************
+       * ATESTADOS
+       ************************/
       case "atestado-salvar":
         data = atestadoSalvar_(body);
         break;
@@ -161,9 +174,10 @@ function doPost(e) {
         data = atestadoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         COMPARECIMENTO
-      --------------------------------*/
+
+      /***********************
+       * DECLARAÇÃO COMPARECIMENTO
+       ************************/
       case "comparecimento-salvar":
         data = comparecimentoSalvar_(body);
         break;
@@ -173,9 +187,10 @@ function doPost(e) {
         data = comparecimentoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         SADT
-      --------------------------------*/
+
+      /***********************
+       * SADT
+       ************************/
       case "sadt-salvar":
         data = sadtSalvar_(body);
         break;
@@ -184,9 +199,10 @@ function doPost(e) {
         data = sadtListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         CONSENTIMENTO
-      --------------------------------*/
+
+      /***********************
+       * CONSENTIMENTO
+       ************************/
       case "consentimento-salvar":
         data = consentimentoSalvar_(body);
         break;
@@ -195,16 +211,18 @@ function doPost(e) {
         data = consentimentoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         PROFISSIONAIS DE DESTINO
-      --------------------------------*/
+
+      /***********************
+       * PROFISSIONAIS DE DESTINO
+       ************************/
       case "profissionaisdestino-listar":
         data = profissionaisDestinoListar_(body);
         break;
 
-      /* -------------------------------
-         ENCAMINHAMENTO
-      --------------------------------*/
+
+      /***********************
+       * ENCAMINHAMENTO
+       ************************/
       case "encaminhamento-salvar":
         data = encaminhamentoSalvar_(body);
         break;
@@ -214,9 +232,10 @@ function doPost(e) {
         data = encaminhamentoListarPorPaciente_(body);
         break;
 
-      /* -------------------------------
-         PRONTUÁRIO (TIMELINE)
-      --------------------------------*/
+
+      /***********************
+       * PRONTUÁRIO (TIMELINE)
+       ************************/
       case "listarProntuarioPorPaciente": {
         const registros = listarProntuarioPorPaciente_(body);
         return jsonResponse_({
@@ -227,14 +246,20 @@ function doPost(e) {
         });
       }
 
-      /* -------------------------------
-         DEFAULT
-      --------------------------------*/
+
+      /***********************
+       * DEFAULT
+       ************************/
       default:
         return jsonError_("Action não reconhecida: " + action);
     }
 
-    return jsonResponse_({ ok: true, action, data });
+    // Resposta padrão
+    return jsonResponse_({
+      ok: true,
+      action,
+      data
+    });
 
   } catch (err) {
     return jsonError_(err);
@@ -242,7 +267,7 @@ function doPost(e) {
 }
 
 /******************************************************
- * HELPERS – JSON, leitura, escrita, utilitários
+ * HELPERS – JSON / Sheets / Utils
  ******************************************************/
 function parseJsonBody_(e) {
   if (!e?.postData?.contents) {
@@ -280,10 +305,11 @@ function rowToObject_(header, row) {
 function listAllRowsAsObjects_(sheet) {
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
+
   if (lastRow < 2) return [];
 
   const header = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-  const rows   = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
 
   return rows.map(r => rowToObject_(header, r));
 }
@@ -292,12 +318,8 @@ function gerarId_() {
   return Utilities.formatDate(new Date(), "America/Sao_Paulo", "yyyyMMddHHmmssSSS");
 }
 
-function formatDate_(d) {
-  return Utilities.formatDate(d, "America/Sao_Paulo", "dd/MM/yyyy");
-}
-
 /******************************************************
- * PRONTUÁRIO – registrar e listar (linha do tempo)
+ * PRONTUÁRIO
  ******************************************************/
 function registrarNoProntuario_(idPaciente, tipo, titulo, descricao) {
   if (!idPaciente || !tipo) return;
@@ -318,6 +340,7 @@ function listarProntuarioPorPaciente_(body) {
 
   const sh = getSheet_(CONFIG.ABA_PRONTUARIO);
   const dados = sh.getDataRange().getValues();
+
   if (dados.length < 2) return [];
 
   const cab = dados[0];
