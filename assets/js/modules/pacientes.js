@@ -1,4 +1,4 @@
-console.log("PACIENTES.JS - VERSAO TESTE 01");
+console.log("PACIENTES.JS - DEPLOY TESTE 001");
 /******************************************************
  * PRONTIO – Módulo: Pacientes
  * Controle completo da tela de pacientes:
