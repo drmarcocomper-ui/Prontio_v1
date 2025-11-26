@@ -5,9 +5,8 @@
   <title>PRONTIO - Cadastro de Pacientes (DEV)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- CSS INLINE PARA TESTE -->
   <style>
-    /* Estilo bem simples, apenas para teste de conexão */
-
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background-color: #f3f4f6;
@@ -188,107 +187,10 @@
     <div id="statusBox" class="status"></div>
   </div>
 
-  <!-- Arquivo de API (função callApi) -->
-  <script src="Api-dev.js"></script>
+  <!-- 1) API DEV – ESTE É O CAMINHO CERTO -->
+  <script src="../assets/js/core/api-dev.js"></script>
 
-  <script>
-    // Script específico desta página de pacientes (DEV)
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("form-cadastro-paciente");
-      const btnSalvar = document.getElementById("btnSalvar");
-      const btnLimpar = document.getElementById("btnLimpar");
-      const statusBox = document.getElementById("statusBox");
-
-      function setStatus(type, message, extra) {
-        statusBox.className = "status"; // limpa todas as classes
-        statusBox.style.display = "block";
-
-        if (type === "ok") {
-          statusBox.classList.add("ok");
-        } else if (type === "error") {
-          statusBox.classList.add("error");
-        } else if (type === "loading") {
-          statusBox.classList.add("loading");
-        }
-
-        statusBox.textContent = message;
-
-        if (extra) {
-          const small = document.createElement("small");
-          small.textContent = extra;
-          statusBox.appendChild(small);
-        }
-      }
-
-      function limparStatus() {
-        statusBox.style.display = "none";
-        statusBox.textContent = "";
-      }
-
-      btnLimpar.addEventListener("click", () => {
-        form.reset();
-        limparStatus();
-      });
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        limparStatus();
-
-        // Desabilita botão enquanto envia
-        btnSalvar.disabled = true;
-
-        // Monta objeto de paciente para enviar ao backend
-        const pacientePayload = {
-          nomeCompleto: document.getElementById("nomeCompleto").value.trim(),
-          dataNascimento: document.getElementById("dataNascimento").value || null,
-          cpf: document.getElementById("cpf").value.trim() || null,
-          telefone: document.getElementById("telefone").value.trim() || null,
-          email: document.getElementById("email").value.trim() || null,
-          observacoes: document.getElementById("observacoes").value.trim() || null
-        };
-
-        if (!pacientePayload.nomeCompleto) {
-          setStatus("error", "O nome do paciente é obrigatório.");
-          btnSalvar.disabled = false;
-          return;
-        }
-
-        try {
-          setStatus("loading", "Enviando dados para o servidor...");
-
-          // Chama o backend via API
-          const response = await callApi({
-            action: "Pacientes.Criar",
-            payload: pacientePayload
-          });
-
-          if (response && response.success) {
-            const id = response.data && response.data.idPaciente
-              ? response.data.idPaciente
-              : "(ID desconhecido)";
-
-            setStatus(
-              "ok",
-              "Paciente salvo com sucesso!",
-              `ID gerado: ${id}`
-            );
-
-            // Se você quiser limpar o formulário após salvar:
-            // form.reset();
-          } else {
-            const errors = (response && response.errors) || [];
-            const firstError = errors.length ? errors[0] : "Erro desconhecido ao salvar.";
-            setStatus("error", "Falha ao salvar paciente.", firstError);
-          }
-        } catch (err) {
-          console.error("Erro ao chamar API:", err);
-          setStatus("error", "Erro de conexão com o servidor.", String(err));
-        } finally {
-          btnSalvar.disabled = false;
-        }
-      });
-    });
-  </script>
+  <!-- 2) LÓGICA DA PÁGINA -->
+  <script src="../assets/js/modules/pacientes-dev.js"></script>
 </body>
 </html>
