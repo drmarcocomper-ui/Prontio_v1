@@ -3,9 +3,9 @@
 
 // URL do seu Web App DEV (Apps Script)
 const API_BASE_URL =
-  "https://script.google.com/macros/s/AKfycbyqoIJ10ufgRej2K1INGw-s7o_8xwYwj68pkwHPnkxMVNn4x0Fc7xQJK3pv-xyfUx6TBA/exec";
+  "https://script.google.com/macros/s/AKfycbwXtxGlNmQpPxpzefPLSHQ0v6dSS5XjXzeVRap1-oBXr0uUO-KWpCJcZoSAKtICko_uYA/exec";
 
-/**
+  /**
  * Função global para chamar a API do backend DEV.
  *
  * Uso:
