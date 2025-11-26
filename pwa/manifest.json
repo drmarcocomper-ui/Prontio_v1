@@ -1,18 +1,47 @@
 {
-  "name": "PRONTIO - Sistema de Consultório Médico",
-  "short_name": "PRONTIO",
-  "description": "Sistema de consultório médico para gerenciamento de pacientes, agenda, documentos e prontuário.",
-  "lang": "pt-BR",
-  "start_url": "/views/atendimento.html",
+  "name": "PRONTIO - Sistema de Consultório",
+  "short_name": "Prontio",
+  "description": "Sistema de prontuário médico, agenda e documentos para consultório.",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f6fb",
-  "theme_color": "#4b6fff",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
   "icons": [
+    {
+      "src": "/assets/img/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
     {
       "src": "/assets/img/icons/icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/img/icons/icon-384.png",
+      "sizes": "384x384",
       "type": "image/png"
     },
     {
@@ -22,3 +51,4 @@
     }
   ]
 }
+já 

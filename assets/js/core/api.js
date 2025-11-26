@@ -1,174 +1,473 @@
 /******************************************************
- * PRONTIO – api.js
- * Camada de acesso ao backend por módulo
+ * PRONTIO – api.js (PRODUÇÃO)
  *
- * Depende de:
- *  - api-core.js  (define callApi / window.callApi)
+ * Camada de ATALHOS acima do api-core.js
+ * 
+ * Requisitos:
+ *  - api-core.js deve ser carregado ANTES deste arquivo;
+ *  - api-core.js define window.callApi e PRONTIO.API.call.
  *
- * Organização:
- * - PRONTIO.API.Pacientes
- * - PRONTIO.API.Agenda
- * - PRONTIO.API.Evolucao
- * - PRONTIO.API.Receita
- * - PRONTIO.API.Exames
- * - PRONTIO.API.Laudos
- * - PRONTIO.API.Atestados
- * - PRONTIO.API.Comparecimento
- * - PRONTIO.API.Medicamentos
+ * Objetivo:
+ *  - Organizar chamadas de API por módulos:
+ *      PRONTIO.Pacientes.listar(...)
+ *      PRONTIO.Agenda.listarPorData(...)
+ *      PRONTIO.Prontuario.listarPorPaciente(...)
+ *      etc.
+ *
+ * TODAS as actions foram alinhadas com seu doPost (Code.gs):
+ *  - pacientes-salvar / pacientes-listar / pacientes-obter
+ *  - agenda-salvar / agenda-listar / agenda-listar-data / agenda-listar-paciente / agenda-atualizar-status
+ *  - evolucao-salvar / evolucao-listar-paciente
+ *  - receita-salvar / receita-listar-paciente
+ *  - medicamentos-listar
+ *  - exame-salvar / exame-listar-paciente
+ *  - laudo-salvar / laudo-listar-paciente
+ *  - atestado-salvar / atestado-listar-paciente
+ *  - comparecimento-salvar / comparecimento-listar-paciente
+ *  - sadt-salvar / sadt-listar-paciente
+ *  - consentimento-salvar / consentimento-listar-paciente
+ *  - profissionaisdestino-listar
+ *  - encaminhamento-salvar / encaminhamento-listar-paciente
+ *  - listarProntuarioPorPaciente
  ******************************************************/
 
 window.PRONTIO = window.PRONTIO || {};
 PRONTIO.API = PRONTIO.API || {};
 
+// ---------------------------------------------------------------------------
+// Função auxiliar genérica
+// ---------------------------------------------------------------------------
+
 /**
- * ⚠️ MUITO IMPORTANTE:
- * Aqui usamos SEMPRE window.callApi (definido em api-core.js),
- * para garantir que estamos chamando o Apps Script.
+ * Chama a API do PRONTIO (PRODUÇÃO), garantindo um formato básico para o payload.
  *
- * Não usamos PRONTIO.API.call, porque script.js pode sobrescrevê-lo
- * apontando para um endpoint interno (foi isso que gerou o 405 em /views/undefined).
+ * @param {string} action - Nome da action (igual ao doPost do Apps Script).
+ * @param {object} data   - Dados complementares (serão mesclados ao body).
+ * @returns {Promise<object>} Resposta JSON do backend.
  */
-const _call = window.callApi;
+PRONTIO.API.request = async function (action, data) {
+  if (!action) {
+    throw new Error("PRONTIO.API.request: action é obrigatório.");
+  }
 
-/* ========= PACIENTES ========= */
+  const body = Object.assign({}, data || {}, { action });
 
-PRONTIO.API.Pacientes = {
-  /**
-   * Lista pacientes (com filtros opcionais no futuro).
-   * Backend: pacientes-listar
-   */
-  listar(filtros = {}) {
-    return _call({ action: "pacientes-listar", filtros });
-  },
-
-  /**
-   * Salva paciente (novo ou edição).
-   * Backend: pacientes-salvar
-   * body.dados vai para Pacientes.gs, que aceita body.dados / body.payload / body direto.
-   */
-  salvar(dados) {
-    return _call({ action: "pacientes-salvar", dados });
-  },
-
-  /**
-   * Obtém um paciente específico pelo ID.
-   * Backend: pacientes-obter
-   */
-  obter(idPaciente) {
-    return _call({ action: "pacientes-obter", idPaciente });
-  },
+  // callApi vem do api-core.js (produção)
+  return window.callApi(body);
 };
 
-/* ========= AGENDA ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Pacientes
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Agenda = {
-  listar(filtros = {}) {
-    return _call({ action: "agenda-listar", filtros });
+PRONTIO.Pacientes = {
+  /**
+   * Salva (cria/edita) um paciente.
+   * Backend: action = "pacientes-salvar"
+   * @param {object} paciente - Objeto com os dados do paciente.
+   */
+  salvar(paciente) {
+    return PRONTIO.API.request("pacientes-salvar", {
+      paciente: paciente || {},
+    });
   },
 
-  salvar(dados) {
-    return _call({ action: "agenda-salvar", dados });
+  /**
+   * Lista pacientes.
+   * Backend: action = "pacientes-listar"
+   * @param {object} filtros - Ex.: { termo: "Maria" }
+   */
+  listar(filtros) {
+    return PRONTIO.API.request("pacientes-listar", {
+      filtros: filtros || {},
+    });
   },
 
-  atualizarStatus(idAgenda, status) {
-    return _call({
-      action: "agenda-atualizar-status",
-      ID_Agenda: idAgenda,
-      Status: status,
+  /**
+   * Obtém dados de um paciente específico.
+   * Backend: action = "pacientes-obter"
+   * @param {string} idPaciente
+   */
+  obter(idPaciente) {
+    return PRONTIO.API.request("pacientes-obter", {
+      idPaciente,
     });
   },
 };
 
-/* ========= EVOLUÇÃO / CONSULTAS ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Agenda
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Evolucao = {
-  salvar(dados) {
-    return _call({ action: "evolucao-salvar", dados });
+PRONTIO.Agenda = {
+  /**
+   * Salva (cria/edita) um agendamento.
+   * Backend: action = "agenda-salvar"
+   * @param {object} agendamento 
+   */
+  salvar(agendamento) {
+    return PRONTIO.API.request("agenda-salvar", {
+      agendamento: agendamento || {},
+    });
   },
 
+  /**
+   * Lista a agenda de forma geral (conforme filtros do backend).
+   * Backend: action = "agenda-listar"
+   * @param {object} filtros - Ex.: { dataInicio, dataFim } ou o que você definiu no Apps Script.
+   */
+  listar(filtros) {
+    return PRONTIO.API.request("agenda-listar", filtros || {});
+  },
+
+  /**
+   * Lista agendamentos de uma data específica.
+   * Backend: action = "agenda-listar-data"
+   * @param {string} dataISO - Ex.: "2025-11-25"
+   */
+  listarPorData(dataISO) {
+    return PRONTIO.API.request("agenda-listar-data", {
+      data: dataISO,
+    });
+  },
+
+  /**
+   * Lista agendamentos de um paciente.
+   * Backend: action = "agenda-listar-paciente"
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "evolucao-por-paciente", idPaciente });
+    return PRONTIO.API.request("agenda-listar-paciente", {
+      idPaciente,
+    });
+  },
+
+  /**
+   * Atualiza o status de um agendamento.
+   * Backend: action = "agenda-atualizar-status"
+   * @param {string} idAgendamento
+   * @param {string} novoStatus
+   */
+  atualizarStatus(idAgendamento, novoStatus) {
+    return PRONTIO.API.request("agenda-atualizar-status", {
+      idAgendamento,
+      status: novoStatus,
+    });
   },
 };
 
-/* ========= RECEITAS ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Evolução / Consultas
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Receita = {
-  salvar(dados) {
-    return _call({ action: "receita-salvar", dados });
+PRONTIO.Evolucao = {
+  /**
+   * Salva uma evolução/consulta.
+   * Backend: action = "evolucao-salvar"
+   * @param {object} evolucao
+   */
+  salvar(evolucao) {
+    return PRONTIO.API.request("evolucao-salvar", {
+      evolucao: evolucao || {},
+    });
   },
 
+  /**
+   * Lista evoluções de um paciente.
+   * Backend: action = "evolucao-listar-paciente"
+   * (alias no backend: "evolucao-por-paciente")
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "receitas-por-paciente", idPaciente });
+    return PRONTIO.API.request("evolucao-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ========= EXAMES ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Receitas
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Exames = {
-  salvar(dados) {
-    return _call({ action: "exame-salvar", dados });
+PRONTIO.Receitas = {
+  /**
+   * Salva uma receita.
+   * Backend: action = "receita-salvar"
+   * @param {object} receita
+   */
+  salvar(receita) {
+    return PRONTIO.API.request("receita-salvar", {
+      receita: receita || {},
+    });
   },
 
+  /**
+   * Lista receitas de um paciente.
+   * Backend: action = "receita-listar-paciente"
+   * (alias no backend: "receitas-por-paciente")
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "exames-por-paciente", idPaciente });
+    return PRONTIO.API.request("receita-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ========= LAUDOS ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Medicamentos (tabela de apoio)
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Laudos = {
-  salvar(dados) {
-    return _call({ action: "laudo-salvar", dados });
+PRONTIO.Medicamentos = {
+  /**
+   * Lista medicamentos cadastrados.
+   * Backend: action = "medicamentos-listar"
+   * @param {object} filtros - opcional
+   */
+  listar(filtros) {
+    return PRONTIO.API.request("medicamentos-listar", {
+      filtros: filtros || {},
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// MÓDULO: Exames
+// ---------------------------------------------------------------------------
+
+PRONTIO.Exames = {
+  /**
+   * Salva pedido de exame.
+   * Backend: action = "exame-salvar"
+   * @param {object} exame
+   */
+  salvar(exame) {
+    return PRONTIO.API.request("exame-salvar", {
+      exame: exame || {},
+    });
   },
 
+  /**
+   * Lista exames de um paciente.
+   * Backend: action = "exame-listar-paciente"
+   * (alias no backend: "exames-por-paciente")
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "laudos-por-paciente", idPaciente });
+    return PRONTIO.API.request("exame-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ========= ATESTADOS ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Laudos
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Atestados = {
-  salvar(dados) {
-    return _call({ action: "atestado-salvar", dados });
+PRONTIO.Laudos = {
+  /**
+   * Salva laudo.
+   * Backend: action = "laudo-salvar"
+   * @param {object} laudo
+   */
+  salvar(laudo) {
+    return PRONTIO.API.request("laudo-salvar", {
+      laudo: laudo || {},
+    });
   },
 
+  /**
+   * Lista laudos de um paciente.
+   * Backend: action = "laudo-listar-paciente"
+   * (alias no backend: "laudos-por-paciente")
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "atestados-por-paciente", idPaciente });
+    return PRONTIO.API.request("laudo-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ========= COMPARECIMENTO ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Atestados
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Comparecimento = {
-  salvar(dados) {
-    return _call({ action: "comparecimento-salvar", dados });
+PRONTIO.Atestados = {
+  /**
+   * Salva atestado.
+   * Backend: action = "atestado-salvar"
+   * @param {object} atestado
+   */
+  salvar(atestado) {
+    return PRONTIO.API.request("atestado-salvar", {
+      atestado: atestado || {},
+    });
   },
 
+  /**
+   * Lista atestados de um paciente.
+   * Backend: action = "atestado-listar-paciente"
+   * (alias no backend: "atestados-por-paciente")
+   * @param {string} idPaciente
+   */
   listarPorPaciente(idPaciente) {
-    return _call({ action: "comparecimentos-por-paciente", idPaciente });
+    return PRONTIO.API.request("atestado-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ========= MEDICAMENTOS ========= */
+// ---------------------------------------------------------------------------
+// MÓDULO: Declaração de Comparecimento
+// ---------------------------------------------------------------------------
 
-PRONTIO.API.Medicamentos = {
-  listar(filtros = {}) {
-    return _call({ action: "medicamentos-listar", filtros });
+PRONTIO.Comparecimento = {
+  /**
+   * Salva declaração de comparecimento.
+   * Backend: action = "comparecimento-salvar"
+   * @param {object} comparecimento
+   */
+  salvar(comparecimento) {
+    return PRONTIO.API.request("comparecimento-salvar", {
+      comparecimento: comparecimento || {},
+    });
+  },
+
+  /**
+   * Lista declarações de comparecimento de um paciente.
+   * Backend: action = "comparecimento-listar-paciente"
+   * (alias no backend: "comparecimentos-por-paciente")
+   * @param {string} idPaciente
+   */
+  listarPorPaciente(idPaciente) {
+    return PRONTIO.API.request("comparecimento-listar-paciente", {
+      idPaciente,
+    });
   },
 };
 
-/* ==========================================================
-   WRAPPERS GLOBAIS (compatibilidade com código antigo)
-   ========================================================== */
+// ---------------------------------------------------------------------------
+// MÓDULO: SADT
+// ---------------------------------------------------------------------------
 
-window.PacientesApi = PRONTIO.API.Pacientes;
-window.AgendaApi = PRONTIO.API.Agenda;
-window.EvolucaoApi = PRONTIO.API.Evolucao;
-window.ReceitaApi = PRONTIO.API.Receita;
-window.ExamesApi = PRONTIO.API.Exames;
-window.LaudosApi = PRONTIO.API.Laudos;
-window.AtestadosApi = PRONTIO.API.Atestados;
-window.ComparecimentoApi = PRONTIO.API.Comparecimento;
-window.MedicamentosApi = PRONTIO.API.Medicamentos;
+PRONTIO.SADT = {
+  /**
+   * Salva solicitação SADT.
+   * Backend: action = "sadt-salvar"
+   * @param {object} sadt
+   */
+  salvar(sadt) {
+    return PRONTIO.API.request("sadt-salvar", {
+      sadt: sadt || {},
+    });
+  },
+
+  /**
+   * Lista SADT de um paciente.
+   * Backend: action = "sadt-listar-paciente"
+   * @param {string} idPaciente
+   */
+  listarPorPaciente(idPaciente) {
+    return PRONTIO.API.request("sadt-listar-paciente", {
+      idPaciente,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// MÓDULO: Consentimento
+// ---------------------------------------------------------------------------
+
+PRONTIO.Consentimento = {
+  /**
+   * Salva consentimento informado.
+   * Backend: action = "consentimento-salvar"
+   * @param {object} consentimento
+   */
+  salvar(consentimento) {
+    return PRONTIO.API.request("consentimento-salvar", {
+      consentimento: consentimento || {},
+    });
+  },
+
+  /**
+   * Lista consentimentos de um paciente.
+   * Backend: action = "consentimento-listar-paciente"
+   * @param {string} idPaciente
+   */
+  listarPorPaciente(idPaciente) {
+    return PRONTIO.API.request("consentimento-listar-paciente", {
+      idPaciente,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// MÓDULO: Profissionais de Destino
+// ---------------------------------------------------------------------------
+
+PRONTIO.ProfissionaisDestino = {
+  /**
+   * Lista profissionais de destino.
+   * Backend: action = "profissionaisdestino-listar"
+   * @param {object} filtros - opcional
+   */
+  listar(filtros) {
+    return PRONTIO.API.request("profissionaisdestino-listar", {
+      filtros: filtros || {},
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// MÓDULO: Encaminhamento
+// ---------------------------------------------------------------------------
+
+PRONTIO.Encaminhamento = {
+  /**
+   * Salva encaminhamento.
+   * Backend: action = "encaminhamento-salvar"
+   * @param {object} encaminhamento
+   */
+  salvar(encaminhamento) {
+    return PRONTIO.API.request("encaminhamento-salvar", {
+      encaminhamento: encaminhamento || {},
+    });
+  },
+
+  /**
+   * Lista encaminhamentos de um paciente.
+   * Backend: action = "encaminhamento-listar-paciente"
+   * (alias no backend: "encaminhamentos-por-paciente")
+   * @param {string} idPaciente
+   */
+  listarPorPaciente(idPaciente) {
+    return PRONTIO.API.request("encaminhamento-listar-paciente", {
+      idPaciente,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// MÓDULO: Prontuário (Timeline)
+// ---------------------------------------------------------------------------
+
+PRONTIO.Prontuario = {
+  /**
+   * Lista todo o prontuário (timeline) de um paciente.
+   * Backend: action = "listarProntuarioPorPaciente"
+   * @param {string} idPaciente
+   */
+  listarPorPaciente(idPaciente) {
+    return PRONTIO.API.request("listarProntuarioPorPaciente", {
+      idPaciente,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// LOG de inicialização
+// ---------------------------------------------------------------------------
+
+console.log("PRONTIO (PRODUÇÃO) :: api.js carregado. Atalhos por módulo disponíveis.");

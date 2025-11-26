@@ -14,12 +14,12 @@ PRONTIO.API = PRONTIO.API || {};
 /**
  * ⚠️ URL DA WEBAPP (Apps Script)
  *
- * Você me informou esta URL:
- * https://script.google.com/macros/s/AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw/exec
+ * URL da implantação atual:
+ * https://script.google.com/macros/s/AKfycbyFYoD5GBRF0yiVSTuez93YniNXG-ONOWQQuAxjjbOoPbzDugDPjHAGfmL8x7zuUSLirA/exec
  *
- * Se algum dia publicar outra versão, é só trocar aqui.
+ * Se publicar outra versão, é só trocar aqui.
  */
-const API_URL = "https://script.google.com/macros/s/AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzFinGtszWRvpaWaBL2hdEgxGinBjq65AhsKVubK-R1K8-ax1DqE1aU13TUsQyY_Rma/exec";
 
 /**
  * Função genérica para chamar o backend PRONTIO.
@@ -37,28 +37,44 @@ async function callApi(body) {
 
   const payload = body || {};
 
-  // Opcional: log leve de debug (pode comentar depois se quiser)
+  // Log leve de debug
   if (payload.action) {
     console.log("PRONTIO :: calling API action =", payload.action);
   }
 
-  const resp = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json;charset=utf-8",
-    },
-    body: JSON.stringify(payload),
-  });
+  let resp;
+  try {
+    resp = await fetch(API_URL, {
+      method: "POST",
+      // Usamos text/plain para evitar preflight CORS no Apps Script
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("PRONTIO :: erro de rede ao chamar API", err);
+    throw new Error("Não foi possível conectar à API do PRONTIO. Verifique sua conexão ou a URL da WebApp.");
+  }
 
   if (!resp.ok) {
+    console.error("PRONTIO :: HTTP error", resp.status, resp.statusText);
     throw new Error("Falha HTTP ao chamar API: " + resp.status + " " + resp.statusText);
   }
 
-  const json = await resp.json();
+  let json;
+  try {
+    json = await resp.json();
+  } catch (err) {
+    console.error("PRONTIO :: erro ao interpretar JSON da API", err);
+    throw new Error("Resposta inválida da API do PRONTIO (não é JSON).");
+  }
 
   if (!json.ok) {
-    // backend sempre responde { ok:false, erro:"mensagem" } em caso de erro
-    throw new Error(json.erro || "Erro desconhecido na API do PRONTIO.");
+    // backend responde { ok:false, erro:"mensagem" } em caso de erro
+    const msg = json.erro || "Erro desconhecido na API do PRONTIO.";
+    console.error("PRONTIO :: erro de aplicação na API", msg, json);
+    throw new Error(msg);
   }
 
   return json;

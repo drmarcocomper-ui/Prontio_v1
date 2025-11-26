@@ -1,381 +1,379 @@
-console.log("PACIENTES.JS - DEPLOY TESTE 001");
 /******************************************************
- * PRONTIO – Módulo: Pacientes
- * Controle completo da tela de pacientes:
- * - listagem
- * - filtros
- * - drawer (novo/editar)
- * - salvar
- * - envio para prontuário
- *
- * Arquitetura nova:
- * PRONTIO.Modules.Pacientes.init()
- *
- * Compatibilidade:
- * Nenhuma função antiga quebra.
+ * PRONTIO – módulos/pacientes.js
+ * Lógica da tela de Pacientes (frontend)
  ******************************************************/
 
 window.PRONTIO = window.PRONTIO || {};
 PRONTIO.Modules = PRONTIO.Modules || {};
 
-PRONTIO.Modules.Pacientes = (() => {
+(function () {
+  // AGORA usando PRONTIO.API (maiúsculo), coerente com api.js
+  const PacientesApi = (PRONTIO.API && PRONTIO.API.Pacientes) || null;
 
-  /* ============================================================
-     ESTADO
-  ============================================================ */
-
-  let pacientesCache = [];
-
-  /* ============================================================
-     STORAGE — salva paciente para módulo prontuário
-  ============================================================ */
-
-  function salvarSelecionado(p) {
-    if (!p) return;
-
-    const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
-
-    const obj = {
-      id: p.ID_Paciente,
-      nome: p.NomePaciente,
-      telefone: p.Telefone1 || p.Telefone2 || "",
-      idade: idade || "",
-      plano: p.PlanoSaude || "",
-      alergias: p.Alergias || "",
-      medicacoes: p.MedicacoesEmUso || "",
-      doencas: p.DoencasCronicas || "",
-      dataNascimento: p.DataNascimento || "",
-    };
-
-    PRONTIO.Storage.salvarPacienteSelecionado(obj);
-  }
-
-  /* ============================================================
-     API — Pacientes
-  ============================================================ */
-
-  async function carregarPacientes() {
-    try {
-      const data = await PRONTIO.API.Pacientes.listar();
-      pacientesCache = data.pacientes || [];
-      renderizarLista();
-    } catch (e) {
-      console.error(e);
-      PRONTIO.UI.showToast("Erro ao carregar pacientes: " + e.message, "erro");
+  const state = {
+    carregando: false,
+    pacientes: [],
+    filtros: {
+      busca: "",
+      ativo: "S"
     }
-  }
+  };
 
-  function montarDoForm() {
-    return {
-      ID_Paciente: PRONTIO.Forms.getValue("idPaciente") || null,
-      NomePaciente: PRONTIO.Forms.getValue("nomePaciente"),
-      DataNascimento: PRONTIO.Forms.getValue("dataNascimento"),
-      Sexo: PRONTIO.Forms.getValue("sexo"),
-      CPF: PRONTIO.Forms.getValue("cpf"),
-      RG: PRONTIO.Forms.getValue("rg"),
-      Telefone1: PRONTIO.Forms.getValue("telefone1"),
-      Telefone2: PRONTIO.Forms.getValue("telefone2"),
-      Email: PRONTIO.Forms.getValue("email"),
-      EnderecoRua: PRONTIO.Forms.getValue("enderecoRua"),
-      EnderecoNumero: PRONTIO.Forms.getValue("enderecoNumero"),
-      EnderecoBairro: PRONTIO.Forms.getValue("enderecoBairro"),
-      EnderecoCidade: PRONTIO.Forms.getValue("enderecoCidade"),
-      EnderecoUF: PRONTIO.Forms.getValue("enderecoUF"),
-      EnderecoCEP: PRONTIO.Forms.getValue("enderecoCEP"),
-      Alergias: PRONTIO.Forms.getValue("alergias"),
-      MedicacoesEmUso: PRONTIO.Forms.getValue("medicacoesEmUso"),
-      DoencasCronicas: PRONTIO.Forms.getValue("doencasCronicas"),
-      ObsImportantes: PRONTIO.Forms.getValue("obsImportantes"),
-      PlanoSaude: PRONTIO.Forms.getValue("planoSaude"),
-      NumeroCarteirinha: PRONTIO.Forms.getValue("numeroCarteirinha"),
-      ValidadeCarteirinha: PRONTIO.Forms.getValue("validadeCarteirinha"),
-      Ativo: PRONTIO.Forms.getValue("ativo") || "S",
-    };
-  }
-
-  async function salvarPaciente(irParaProntuario = false) {
-    const paciente = montarDoForm();
-
-    if (!paciente.NomePaciente) {
-      PRONTIO.UI.showToast("Informe o nome do paciente.", "erro");
-      return;
-    }
-
-    try {
-      const data = await PRONTIO.API.Pacientes.salvar(paciente);
-      const salvo = data.paciente;
-
-      PRONTIO.UI.showToast("Paciente salvo com sucesso.");
-
-      const idx = pacientesCache.findIndex(
-        (p) => p.ID_Paciente === salvo.ID_Paciente
-      );
-
-      if (idx >= 0) pacientesCache[idx] = salvo;
-      else pacientesCache.push(salvo);
-
-      preencherFormulario(salvo);
-      renderizarLista();
-
-      if (irParaProntuario) {
-        salvarSelecionado(salvo);
-        window.location.href = "prontuario.html";
-      }
-    } catch (err) {
-      console.error(err);
-      PRONTIO.UI.showToast("Erro ao salvar paciente: " + err.message, "erro");
-    }
-  }
-
-  function irParaProntuarioPorId(idPaciente) {
-    const p = pacientesCache.find((x) => x.ID_Paciente === idPaciente);
-    if (!p) {
-      PRONTIO.UI.showToast("Paciente não encontrado.", "erro");
-      return;
-    }
-
-    salvarSelecionado(p);
-    window.location.href = "prontuario.html";
-  }
-
-  /* ============================================================
-     UI — FORM / DRAWER / LISTA
-  ============================================================ */
-
-  function preencherFormulario(p) {
-    PRONTIO.Forms.setValue("idPaciente", p.ID_Paciente || "");
-    PRONTIO.Forms.setValue("nomePaciente", p.NomePaciente);
-    PRONTIO.Forms.setValue("dataNascimento", p.DataNascimento);
-    PRONTIO.Forms.setValue("sexo", p.Sexo);
-    PRONTIO.Forms.setValue("cpf", p.CPF);
-    PRONTIO.Forms.setValue("rg", p.RG);
-    PRONTIO.Forms.setValue("telefone1", p.Telefone1);
-    PRONTIO.Forms.setValue("telefone2", p.Telefone2);
-    PRONTIO.Forms.setValue("email", p.Email);
-    PRONTIO.Forms.setValue("enderecoRua", p.EnderecoRua);
-    PRONTIO.Forms.setValue("enderecoNumero", p.EnderecoNumero);
-    PRONTIO.Forms.setValue("enderecoBairro", p.EnderecoBairro);
-    PRONTIO.Forms.setValue("enderecoCidade", p.EnderecoCidade);
-    PRONTIO.Forms.setValue("enderecoUF", p.EnderecoUF);
-    PRONTIO.Forms.setValue("enderecoCEP", p.EnderecoCEP);
-    PRONTIO.Forms.setValue("alergias", p.Alergias);
-    PRONTIO.Forms.setValue("medicacoesEmUso", p.MedicacoesEmUso);
-    PRONTIO.Forms.setValue("doencasCronicas", p.DoencasCronicas);
-    PRONTIO.Forms.setValue("obsImportantes", p.ObsImportantes);
-    PRONTIO.Forms.setValue("planoSaude", p.PlanoSaude);
-    PRONTIO.Forms.setValue("numeroCarteirinha", p.NumeroCarteirinha);
-    PRONTIO.Forms.setValue("validadeCarteirinha", p.ValidadeCarteirinha);
-    PRONTIO.Forms.setValue("ativo", p.Ativo || "S");
-
-    const titulo = document.getElementById("tituloFormulario");
-    if (titulo) titulo.textContent = "Editar paciente";
-  }
-
-  function limparFormulario() {
-    const form = document.getElementById("paciente-form");
-    if (form) form.reset();
-
-    PRONTIO.Forms.setValue("idPaciente", "");
-    PRONTIO.Forms.setValue("ativo", "S");
-
-    const titulo = document.getElementById("tituloFormulario");
-    if (titulo) titulo.textContent = "Novo paciente";
-  }
-
-  function renderizarLista() {
-    const div = document.getElementById("listaPacientes");
-    if (!div) return;
-
-    const busca = (PRONTIO.Forms.getValue("buscaPaciente") || "").toLowerCase();
-    const filtro = PRONTIO.Forms.getValue("filtroAtivo") || "S";
-
-    const filtrados = pacientesCache.filter((p) => {
-      if (filtro !== "TODOS" && (p.Ativo || "S") !== filtro) return false;
-      if (busca) {
-        const alvo = `${p.NomePaciente} ${p.CPF} ${p.Telefone1} ${p.Telefone2}`.toLowerCase();
-        if (!alvo.includes(busca)) return false;
-      }
-      return true;
-    });
-
-    filtrados.sort((a, b) =>
-      (a.NomePaciente || "").localeCompare(b.NomePaciente || "", "pt-BR")
-    );
-
-    div.innerHTML = "";
-
-    filtrados.forEach((p) => {
-      const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
-      const iniciais = (p.NomePaciente || "")
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((t) => t[0].toUpperCase())
-        .join("");
-
-      const telefone = p.Telefone1 || p.Telefone2 || "";
-      const plano = p.PlanoSaude || "Sem plano";
-      const cidade = p.EnderecoCidade || "";
-      const uf = p.EnderecoUF || "";
-
-      const infoLinha =
-        telefone && (cidade || uf)
-          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""}`
-          : telefone || cidade || "";
-
-      const statusTag =
-        p.Ativo === "N"
-          ? `<span class="tag-pill tag-inativo">Inativo</span>`
-          : `<span class="tag-pill tag-ativo">Ativo</span>`;
-
-      const card = document.createElement("div");
-      card.className = "paciente-item";
-
-      card.innerHTML = `
-        <div class="paciente-main">
-          <div class="paciente-avatar">${iniciais}</div>
-          <div>
-            <div class="paciente-nome">
-              ${p.NomePaciente || ""}
-              ${idade ? `<span class="paciente-idade">• ${idade} anos</span>` : ""}
-            </div>
-            ${infoLinha ? `<div class="paciente-sec">${infoLinha}</div>` : ""}
-          </div>
-        </div>
-
-        <div class="paciente-tags">
-          <span class="tag-pill tag-plano">${plano}</span>
-          ${statusTag}
-        </div>
-
-        <div class="paciente-actions">
-          <button class="btn-primario" data-acao="prontuario" data-id="${p.ID_Paciente}">
-            Prontuário
-          </button>
-          <button class="btn-tabela" data-acao="editar" data-id="${p.ID_Paciente}">
-            Editar
-          </button>
-        </div>
-      `;
-
-      div.appendChild(card);
-    });
-  }
-
-  /* ============================================================
-     EVENTOS / DRAWER
-  ============================================================ */
-
-  function registrarEventos() {
-    const painel = document.getElementById("painelPaciente");
-    const backdrop = document.getElementById("backdropPaciente");
-    const tituloForm = document.getElementById("tituloFormulario");
-
-    const abrirDrawer = function (modo) {
-      if (tituloForm) {
-        tituloForm.textContent =
-          modo === "editar" ? "Editar paciente" : "Novo paciente";
-      }
-      painel.classList.add("aberto");
-      backdrop.classList.add("visivel");
-    };
-
-    const fecharDrawer = function () {
-      painel.classList.remove("aberto");
-      backdrop.classList.remove("visivel");
-    };
-
-    document.getElementById("btnFecharDrawer")?.addEventListener("click", fecharDrawer);
-    backdrop?.addEventListener("click", fecharDrawer);
-
-    document.getElementById("btnNovoPaciente")?.addEventListener("click", () => {
-      limparFormulario();
-      abrirDrawer("novo");
-    });
-
-    document.getElementById("btnCancelarEdicao")?.addEventListener("click", limparFormulario);
-
-    document.getElementById("btnSalvarIrProntuario")?.addEventListener("click", () => {
-      salvarPaciente(true);
-    });
-
-    const form = document.getElementById("paciente-form");
-    if (form) {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        salvarPaciente(false);
-      });
-    }
-
-    const lista = document.getElementById("listaPacientes");
-    if (lista) {
-      lista.addEventListener("click", (e) => {
-        const btn = e.target.closest("button[data-acao]");
-        if (!btn) return;
-
-        const acao = btn.dataset.acao;
-        const id = btn.dataset.id;
-
-        if (acao === "editar") {
-          const p = pacientesCache.find((x) => x.ID_Paciente === id);
-          if (p) {
-            preencherFormulario(p);
-            abrirDrawer("editar");
-          }
-        } else if (acao === "prontuario") {
-          irParaProntuarioPorId(id);
-        }
-      });
-    }
-
-    const buscaEl = document.getElementById("buscaPaciente");
-    if (buscaEl) {
-      buscaEl.addEventListener("input", renderizarLista);
-      buscaEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          renderizarLista();
-        }
-      });
-    }
-
-    document.getElementById("filtroAtivo")?.addEventListener("change", renderizarLista);
-  }
-
-  /* ============================================================
-     INICIALIZAÇÃO
-  ============================================================ */
+  // Referências DOM
+  let elLista;
+  let elBusca;
+  let elFiltroAtivo;
+  let elBtnNovo;
+  let elDrawer;
+  let elBackdrop;
+  let elBtnFecharDrawer;
+  let elBtnCancelar;
+  let elForm;
+  let elTituloForm;
+  let elMensagemStatus;
 
   function init() {
-    carregarPacientes();
-    registrarEventos();
+    console.log("PRONTIO.Modules.Pacientes :: init()");
+
+    if (!PacientesApi) {
+      console.error("PRONTIO.Modules.Pacientes :: PacientesApi não encontrado. Verifique /assets/js/core/api.js");
+      return;
+    }
+
+    cacheElements();
+    bindEvents();
+    carregarLista();
   }
 
-  /* API do módulo */
-  return {
-    init,
+  function cacheElements() {
+    elLista          = document.getElementById("listaPacientes");
+    elBusca          = document.getElementById("buscaPaciente");
+    elFiltroAtivo    = document.getElementById("filtroAtivo");
+    elBtnNovo        = document.getElementById("btnNovoPaciente");
+    elDrawer         = document.getElementById("painelPaciente");
+    elBackdrop       = document.getElementById("backdropPaciente");
+    elBtnFecharDrawer= document.getElementById("btnFecharDrawer");
+    elBtnCancelar    = document.getElementById("btnCancelarPaciente");
+    elForm           = document.getElementById("paciente-form");
+    elTituloForm     = document.getElementById("tituloFormulario");
+    elMensagemStatus = document.getElementById("mensagemStatus");
+  }
+
+  function bindEvents() {
+    if (elBusca) {
+      elBusca.addEventListener("input", onBuscaChange);
+    }
+
+    if (elFiltroAtivo) {
+      elFiltroAtivo.addEventListener("change", onFiltroAtivoChange);
+    }
+
+    if (elBtnNovo) {
+      elBtnNovo.addEventListener("click", onNovoPaciente);
+    }
+
+    if (elBtnFecharDrawer) {
+      elBtnFecharDrawer.addEventListener("click", fecharDrawer);
+    }
+
+    if (elBackdrop) {
+      elBackdrop.addEventListener("click", fecharDrawer);
+    }
+
+    if (elBtnCancelar) {
+      elBtnCancelar.addEventListener("click", fecharDrawer);
+    }
+
+    if (elForm) {
+      elForm.addEventListener("submit", onSubmitForm);
+    }
+  }
+
+  /* ===================== Eventos ===================== */
+
+  let buscaTimeout = null;
+  function onBuscaChange(e) {
+    const valor = e.target.value || "";
+    state.filtros.busca = valor;
+
+    if (buscaTimeout) clearTimeout(buscaTimeout);
+    buscaTimeout = setTimeout(() => {
+      carregarLista();
+    }, 300);
+  }
+
+  function onFiltroAtivoChange(e) {
+    const valor = e.target.value || "S";
+    state.filtros.ativo = valor;
+    carregarLista();
+  }
+
+  function onNovoPaciente() {
+    abrirDrawerNovo();
+  }
+
+  async function onSubmitForm(e) {
+    e.preventDefault();
+    setMensagemStatus("", false);
+
+    try {
+      const dados = coletarDadosFormulario();
+      console.log("PRONTIO.Pacientes :: salvando paciente", dados);
+
+      const pacienteSalvo = await PacientesApi.salvar(dados);
+
+      setMensagemStatus("Paciente salvo com sucesso.", true);
+
+      const campoId = document.getElementById("idPaciente");
+      if (campoId && pacienteSalvo && pacienteSalvo.ID_Paciente) {
+        campoId.value = pacienteSalvo.ID_Paciente;
+      }
+
+      await carregarLista();
+    } catch (err) {
+      console.error("Erro ao salvar paciente:", err);
+      setMensagemStatus(err.message || "Erro ao salvar paciente.", false);
+    }
+  }
+
+  /* ============ Carregamento / Lista ============ */
+
+  async function carregarLista() {
+    if (!elLista) return;
+    if (state.carregando) return;
+
+    state.carregando = true;
+    elLista.innerHTML = `<div class="lista-pacientes-loading">Carregando pacientes...</div>`;
+
+    try {
+      const filtros = {
+        busca: state.filtros.busca || "",
+        ativo: state.filtros.ativo || "S"
+      };
+
+      const pacientes = await PacientesApi.listar(filtros);
+      state.pacientes = pacientes || [];
+
+      renderLista();
+    } catch (err) {
+      console.error("Erro ao carregar lista de pacientes:", err);
+      elLista.innerHTML = `<div class="lista-pacientes-erro">Erro ao carregar pacientes: ${err.message || err}</div>`;
+    } finally {
+      state.carregando = false;
+    }
+  }
+
+  function renderLista() {
+    if (!elLista) return;
+
+    const pacientes = state.pacientes || [];
+
+    if (!pacientes.length) {
+      elLista.innerHTML = `
+        <div class="lista-pacientes-vazia">
+          Nenhum paciente encontrado.
+        </div>
+      `;
+      return;
+    }
+
+    const html = pacientes.map(p => criarCardPacienteHtml(p)).join("");
+    elLista.innerHTML = html;
+
+    const botoesEditar = elLista.querySelectorAll("[data-action='editar-paciente']");
+    botoesEditar.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        const paciente = pacientes.find(px => String(px.ID_Paciente) === String(id));
+        if (paciente) {
+          abrirDrawerEditar(paciente);
+        }
+      });
+    });
+
+    const botoesProntuario = elLista.querySelectorAll("[data-action='abrir-prontuario']");
+    botoesProntuario.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        console.log("Abrir prontuário para paciente:", id);
+      });
+    });
+  }
+
+  function criarCardPacienteHtml(p) {
+    const id   = p.ID_Paciente || "";
+    const nome = p.NomePaciente || "Paciente sem nome";
+    const cpf  = p.CPF || "";
+    const tel1 = p.Telefone1 || "";
+    const tel2 = p.Telefone2 || "";
+    const email = p.Email || "";
+    const plano = p.PlanoSaude || p.Plano || p.planoSaude || "";
+    const dataUltima = p.DataUltimaConsulta || "";
+
+    const contatos = [cpf, tel1, tel2, email].filter(Boolean).join(" • ");
+    const ativoFlag = (p.Ativo || "S") === "S";
+    const labelStatus = ativoFlag ? "Ativo" : "Inativo";
+
+    return `
+      <article class="paciente-item" data-id="${id}">
+        <div class="paciente-main">
+          <h3 class="paciente-nome">${nome}</h3>
+          <div class="paciente-contatos">${contatos || "Sem contatos cadastrados"}</div>
+          <div class="paciente-extra">
+            ${plano ? `<span class="paciente-plano">Plano: ${plano}</span>` : ""}
+            ${dataUltima ? `<span class="paciente-ultima">Última consulta: ${dataUltima}</span>` : ""}
+          </div>
+        </div>
+        <div class="paciente-meta">
+          <span class="paciente-status paciente-status-${ativoFlag ? "ativo" : "inativo"}">
+            ${labelStatus}
+          </span>
+          <div class="paciente-acoes">
+            <button type="button"
+                    class="btn btn-secundario btn-sm"
+                    data-action="abrir-prontuario"
+                    data-id="${id}">
+              Prontuário
+            </button>
+            <button type="button"
+                    class="btn btn-ghost btn-sm"
+                    data-action="editar-paciente"
+                    data-id="${id}">
+              Editar
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  /* ============ Drawer / Formulário ============ */
+
+  function abrirDrawerNovo() {
+    resetFormulario();
+    if (elTituloForm) elTituloForm.textContent = "Novo paciente";
+    mostrarDrawer(true);
+  }
+
+  function abrirDrawerEditar(p) {
+    preencherFormulario(p);
+    if (elTituloForm) elTituloForm.textContent = "Editar paciente";
+    mostrarDrawer(true);
+  }
+
+  function mostrarDrawer(ativo) {
+    if (!elDrawer) return;
+    if (ativo) {
+      elDrawer.classList.add("aberto");
+      if (elBackdrop) elBackdrop.classList.add("visivel");
+    } else {
+      elDrawer.classList.remove("aberto");
+      if (elBackdrop) elBackdrop.classList.remove("visivel");
+    }
+  }
+
+  function fecharDrawer() {
+    mostrarDrawer(false);
+  }
+
+  function resetFormulario() {
+    if (!elForm) return;
+    elForm.reset();
+
+    const campoId = document.getElementById("idPaciente");
+    if (campoId) campoId.value = "";
+
+    const campoAtivo = document.getElementById("ativo");
+    if (campoAtivo) campoAtivo.value = "S";
+
+    setMensagemStatus("", false);
+  }
+
+  function preencherFormulario(p) {
+    if (!elForm || !p) return;
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val != null ? String(val) : "";
+    };
+
+    setVal("idPaciente",          p.ID_Paciente || "");
+    setVal("nomePaciente",        p.NomePaciente || "");
+    setVal("dataNascimento",      p.DataNascimento || "");
+    setVal("sexo",                p.Sexo || "");
+    setVal("cpf",                 p.CPF || "");
+    setVal("rg",                  p.RG || "");
+    setVal("telefone1",           p.Telefone1 || "");
+    setVal("telefone2",           p.Telefone2 || "");
+    setVal("email",               p.Email || "");
+    setVal("enderecoRua",         p.EnderecoRua || "");
+    setVal("enderecoNumero",      p.EnderecoNumero || "");
+    setVal("enderecoBairro",      p.EnderecoBairro || "");
+    setVal("enderecoCidade",      p.EnderecoCidade || "");
+    setVal("enderecoUF",          p.EnderecoUF || "");
+    setVal("enderecoCEP",         p.EnderecoCEP || "");
+    setVal("alergias",            p.Alergias || "");
+    setVal("medicacoesEmUso",     p.MedicacoesEmUso || "");
+    setVal("doencasCronicas",     p.DoencasCronicas || "");
+    setVal("obsImportantes",      p.ObsImportantes || "");
+    setVal("planoSaude",          p.PlanoSaude || "");
+    setVal("numeroCarteirinha",   p.NumeroCarteirinha || "");
+    setVal("validadeCarteirinha", p.ValidadeCarteirinha || "");
+    setVal("dataUltimaConsulta",  p.DataUltimaConsulta || "");
+    setVal("ativo",               p.Ativo || "S");
+  }
+
+  function coletarDadosFormulario() {
+    const getVal = (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : "";
+    };
+
+    return {
+      ID_Paciente:        getVal("idPaciente") || undefined,
+      NomePaciente:       getVal("nomePaciente"),
+      DataNascimento:     getVal("dataNascimento"),
+      Sexo:               getVal("sexo"),
+      CPF:                getVal("cpf"),
+      RG:                 getVal("rg"),
+      Telefone1:          getVal("telefone1"),
+      Telefone2:          getVal("telefone2"),
+      Email:              getVal("email"),
+      EnderecoRua:        getVal("enderecoRua"),
+      EnderecoNumero:     getVal("enderecoNumero"),
+      EnderecoBairro:     getVal("enderecoBairro"),
+      EnderecoCidade:     getVal("enderecoCidade"),
+      EnderecoUF:         getVal("enderecoUF"),
+      EnderecoCEP:        getVal("enderecoCEP"),
+      Alergias:           getVal("alergias"),
+      MedicacoesEmUso:    getVal("medicacoesEmUso"),
+      DoencasCronicas:    getVal("doencasCronicas"),
+      ObsImportantes:     getVal("obsImportantes"),
+      PlanoSaude:         getVal("planoSaude"),
+      NumeroCarteirinha:  getVal("numeroCarteirinha"),
+      ValidadeCarteirinha:getVal("validadeCarteirinha"),
+      Ativo:              getVal("ativo") || "S",
+      DataUltimaConsulta: getVal("dataUltimaConsulta")
+    };
+  }
+
+  function setMensagemStatus(msg, sucesso) {
+    if (!elMensagemStatus) return;
+
+    if (!msg) {
+      elMensagemStatus.textContent = "";
+      elMensagemStatus.hidden = true;
+      elMensagemStatus.classList.remove("status-sucesso", "status-erro");
+      return;
+    }
+
+    elMensagemStatus.textContent = msg;
+    elMensagemStatus.hidden = false;
+    elMensagemStatus.classList.toggle("status-sucesso", !!sucesso);
+    elMensagemStatus.classList.toggle("status-erro", !sucesso);
+  }
+
+  PRONTIO.Modules.Pacientes = {
+    init
   };
 })();
-
-/* ============================================================
-   WRAPPER DE COMPATIBILIDADE (para HTML antigo)
-============================================================ */
-window.Pacientes = PRONTIO.Modules.Pacientes;
-
-/* ============================================================
-   AUTO-INICIALIZAÇÃO NA VIEW "pacientes"
-   (garante que o módulo ligue sozinho na página correta)
-============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    const body = document.body;
-    const page = body && body.dataset ? body.dataset.page : null;
-
-    if (page === "pacientes" && window.PRONTIO?.Modules?.Pacientes?.init) {
-      PRONTIO.Modules.Pacientes.init();
-      console.log("PRONTIO :: Módulo Pacientes inicializado automaticamente (data-page='pacientes').");
-    }
-  } catch (e) {
-    console.error("Erro ao auto-inicializar módulo Pacientes:", e);
-  }
-});

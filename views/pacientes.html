@@ -1,379 +1,178 @@
-/******************************************************
- * PRONTIO – Módulo: Pacientes
- * Controle completo da tela de pacientes:
- * - listagem
- * - filtros
- * - drawer (novo/editar)
- * - salvar
- * - envio para prontuário
- *
- * Agora usando diretamente window.callApi (api-core.js)
- * para conversar com o Apps Script.
- ******************************************************/
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRONTIO – Pacientes</title>
 
-window.PRONTIO = window.PRONTIO || {};
-PRONTIO.Modules = PRONTIO.Modules || {};
+  <!-- ========== PWA ========== -->
+  <link rel="manifest" href="/pwa/manifest.json">
+  <meta name="theme-color" content="#4b6fff">
 
-PRONTIO.Modules.Pacientes = (() => {
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/assets/img/icons/icon-192.png">
 
-  /* ============================================================
-     ESTADO
-  ============================================================ */
+  <!-- Favicon -->
+  <link rel="icon" href="/assets/img/icons/icon-192.png">
 
-  let pacientesCache = [];
+  <!-- GOOGLE FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
 
-  /* ============================================================
-     STORAGE — salva paciente para módulo prontuário
-  ============================================================ */
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/modules/pacientes.css">
 
-  function salvarSelecionado(p) {
-    if (!p) return;
+  <!-- ======================= JS BASE DO PRONTIO ========================= -->
 
-    const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
+  <!-- 1) API BASE (Apps Script) - PRECISA vir primeiro -->
+  <script src="/assets/js/core/api-core.js" defer></script>
 
-    const obj = {
-      id: p.ID_Paciente,
-      nome: p.NomePaciente,
-      telefone: p.Telefone1 || p.Telefone2 || "",
-      idade: idade || "",
-      plano: p.PlanoSaude || "",
-      alergias: p.Alergias || "",
-      medicacoes: p.MedicacoesEmUso || "",
-      doencas: p.DoencasCronicas || "",
-      dataNascimento: p.DataNascimento || "",
-    };
+  <!-- 2) Núcleo / compatibilidade / helpers -->
+  <script src="/assets/js/core/script.js" defer></script>
 
-    PRONTIO.Storage.salvarPacienteSelecionado(obj);
-  }
+  <!-- 3) Camada de API por módulo (PacientesApi, AgendaApi, etc.) -->
+  <script src="/assets/js/core/api.js" defer></script>
 
-  /* ============================================================
-     API — Pacientes (USANDO callApi DIRETO)
-  ============================================================ */
+  <!-- 4) Outras bases -->
+  <script src="/assets/js/core/utils.js" defer></script>
+  <script src="/assets/js/core/layout.js" defer></script>
+  <script src="/assets/js/core/print.js" defer></script>
+  <script src="/assets/js/core/sidebar-loader.js" defer></script>
 
-  async function carregarPacientes() {
-    try {
-      if (typeof window.callApi !== "function") {
-        throw new Error("window.callApi não está definido. Verifique api-core.js.");
+  <!-- 5) MÓDULO PACIENTES -->
+  <script src="/assets/js/modules/pacientes.js" defer></script>
+
+  <!-- Inicialização da VIEW -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      try {
+        console.log("PRONTIO :: iniciando VIEW Pacientes");
+
+        if (window.PRONTIO?.Modules?.Pacientes?.init) {
+          PRONTIO.Modules.Pacientes.init();
+          console.log("PRONTIO :: Pacientes.init() executado");
+        } else {
+          console.error("PRONTIO :: Módulo Pacientes não encontrado.");
+        }
+
+        // DEBUG extra: ver se callApi está disponível
+        console.log("DEBUG PRONTIO :: typeof window.callApi =", typeof window.callApi);
+      } catch (e) {
+        console.error("Erro ao iniciar tela de pacientes:", e);
       }
-
-      const res = await window.callApi({
-        action: "pacientes-listar",
-        filtros: {}
-      });
-
-      // backend retorna { ok, action, total, pacientes, data:{...} }
-      const payload = res.data || res;
-      pacientesCache = payload.pacientes || payload.lista || [];
-      renderizarLista();
-    } catch (e) {
-      console.error(e);
-      PRONTIO.UI.showToast("Erro ao carregar pacientes: " + e.message, "erro");
-    }
-  }
-
-  function montarDoForm() {
-    return {
-      ID_Paciente: PRONTIO.Forms.getValue("idPaciente") || null,
-      NomePaciente: PRONTIO.Forms.getValue("nomePaciente"),
-      DataNascimento: PRONTIO.Forms.getValue("dataNascimento"),
-      Sexo: PRONTIO.Forms.getValue("sexo"),
-      CPF: PRONTIO.Forms.getValue("cpf"),
-      RG: PRONTIO.Forms.getValue("rg"),
-      Telefone1: PRONTIO.Forms.getValue("telefone1"),
-      Telefone2: PRONTIO.Forms.getValue("telefone2"),
-      Email: PRONTIO.Forms.getValue("email"),
-      EnderecoRua: PRONTIO.Forms.getValue("enderecoRua"),
-      EnderecoNumero: PRONTIO.Forms.getValue("enderecoNumero"),
-      EnderecoBairro: PRONTIO.Forms.getValue("enderecoBairro"),
-      EnderecoCidade: PRONTIO.Forms.getValue("enderecoCidade"),
-      EnderecoUF: PRONTIO.Forms.getValue("enderecoUF"),
-      EnderecoCEP: PRONTIO.Forms.getValue("enderecoCEP"),
-      Alergias: PRONTIO.Forms.getValue("alergias"),
-      MedicacoesEmUso: PRONTIO.Forms.getValue("medicacoesEmUso"),
-      DoencasCronicas: PRONTIO.Forms.getValue("doencasCronicas"),
-      ObsImportantes: PRONTIO.Forms.getValue("obsImportantes"),
-      PlanoSaude: PRONTIO.Forms.getValue("planoSaude"),
-      NumeroCarteirinha: PRONTIO.Forms.getValue("numeroCarteirinha"),
-      ValidadeCarteirinha: PRONTIO.Forms.getValue("validadeCarteirinha"),
-      Ativo: PRONTIO.Forms.getValue("ativo") || "S",
-    };
-  }
-
-  async function salvarPaciente(irParaProntuario = false) {
-    const paciente = montarDoForm();
-
-    if (!paciente.NomePaciente) {
-      PRONTIO.UI.showToast("Informe o nome do paciente.", "erro");
-      return;
-    }
-
-    try {
-      if (typeof window.callApi !== "function") {
-        throw new Error("window.callApi não está definido. Verifique api-core.js.");
-      }
-
-      const res = await window.callApi({
-        action: "pacientes-salvar",
-        dados: paciente
-      });
-
-      // backend retorna { ok, action, data:{ idPaciente, paciente, isNovo } }
-      const data = res.data || res;
-      const salvo = data.paciente || data;
-
-      PRONTIO.UI.showToast("Paciente salvo com sucesso.");
-
-      const idx = pacientesCache.findIndex(
-        (p) => p.ID_Paciente === salvo.ID_Paciente
-      );
-
-      if (idx >= 0) pacientesCache[idx] = salvo;
-      else pacientesCache.push(salvo);
-
-      preencherFormulario(salvo);
-      renderizarLista();
-
-      if (irParaProntuario) {
-        salvarSelecionado(salvo);
-        window.location.href = "prontuario.html";
-      }
-    } catch (err) {
-      console.error(err);
-      PRONTIO.UI.showToast("Erro ao salvar paciente: " + err.message, "erro");
-    }
-  }
-
-  function irParaProntuarioPorId(idPaciente) {
-    const p = pacientesCache.find((x) => x.ID_Paciente === idPaciente);
-    if (!p) {
-      PRONTIO.UI.showToast("Paciente não encontrado.", "erro");
-      return;
-    }
-
-    salvarSelecionado(p);
-    window.location.href = "prontuario.html";
-  }
-
-  /* ============================================================
-     UI — FORM / DRAWER / LISTA
-  ============================================================ */
-
-  function preencherFormulario(p) {
-    PRONTIO.Forms.setValue("idPaciente", p.ID_Paciente || "");
-    PRONTIO.Forms.setValue("nomePaciente", p.NomePaciente);
-    PRONTIO.Forms.setValue("dataNascimento", p.DataNascimento);
-    PRONTIO.Forms.setValue("sexo", p.Sexo);
-    PRONTIO.Forms.setValue("cpf", p.CPF);
-    PRONTIO.Forms.setValue("rg", p.RG);
-    PRONTIO.Forms.setValue("telefone1", p.Telefone1);
-    PRONTIO.Forms.setValue("telefone2", p.Telefone2);
-    PRONTIO.Forms.setValue("email", p.Email);
-    PRONTIO.Forms.setValue("enderecoRua", p.EnderecoRua);
-    PRONTIO.Forms.setValue("enderecoNumero", p.EnderecoNumero);
-    PRONTIO.Forms.setValue("enderecoBairro", p.EnderecoBairro);
-    PRONTIO.Forms.setValue("enderecoCidade", p.EnderecoCidade);
-    PRONTIO.Forms.setValue("enderecoUF", p.EnderecoUF);
-    PRONTIO.Forms.setValue("enderecoCEP", p.EnderecoCEP);
-    PRONTIO.Forms.setValue("alergias", p.Alergias);
-    PRONTIO.Forms.setValue("medicacoesEmUso", p.MedicacoesEmUso);
-    PRONTIO.Forms.setValue("doencasCronicas", p.DoencasCronicas);
-    PRONTIO.Forms.setValue("obsImportantes", p.ObsImportantes);
-    PRONTIO.Forms.setValue("planoSaude", p.PlanoSaude);
-    PRONTIO.Forms.setValue("numeroCarteirinha", p.NumeroCarteirinha);
-    PRONTIO.Forms.setValue("validadeCarteirinha", p.ValidadeCarteirinha);
-    PRONTIO.Forms.setValue("ativo", p.Ativo || "S");
-
-    const titulo = document.getElementById("tituloFormulario");
-    if (titulo) titulo.textContent = "Editar paciente";
-  }
-
-  function limparFormulario() {
-    const form = document.getElementById("paciente-form");
-    if (form) form.reset();
-
-    PRONTIO.Forms.setValue("idPaciente", "");
-    PRONTIO.Forms.setValue("ativo", "S");
-
-    const titulo = document.getElementById("tituloFormulario");
-    if (titulo) titulo.textContent = "Novo paciente";
-  }
-
-  function renderizarLista() {
-    const div = document.getElementById("listaPacientes");
-    if (!div) return;
-
-    const busca = (PRONTIO.Forms.getValue("buscaPaciente") || "").toLowerCase();
-    const filtro = PRONTIO.Forms.getValue("filtroAtivo") || "S";
-
-    const filtrados = pacientesCache.filter((p) => {
-      if (filtro !== "TODOS" && (p.Ativo || "S") !== filtro) return false;
-      if (busca) {
-        const alvo = `${p.NomePaciente} ${p.CPF} ${p.Telefone1} ${p.Telefone2}`.toLowerCase();
-        if (!alvo.includes(busca)) return false;
-      }
-      return true;
     });
+  </script>
+</head>
 
-    filtrados.sort((a, b) =>
-      (a.NomePaciente || "").localeCompare(b.NomePaciente || "", "pt-BR")
-    );
+<body data-page="pacientes">
+  <div class="app">
 
-    div.innerHTML = "";
+    <div id="sidebar"></div>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    filtrados.forEach((p) => {
-      const idade = PRONTIO.Utils.calcularIdade(p.DataNascimento);
-      const iniciais = (p.NomePaciente || "")
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((t) => t[0].toUpperCase())
-        .join("");
+    <div class="app-content">
 
-      const telefone = p.Telefone1 || p.Telefone2 || "";
-      const plano = p.PlanoSaude || "Sem plano";
-      const cidade = p.EnderecoCidade || "";
-      const uf = p.EnderecoUF || "";
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="app-sidebar-toggle btn-icon" aria-label="Abrir menu">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
 
-      const infoLinha =
-        telefone && (cidade || uf)
-          ? `${telefone} <span class="dot">•</span> ${cidade}${uf ? " - " + uf : ""}`
-          : telefone || cidade || "";
-
-      const statusTag =
-        p.Ativo === "N"
-          ? `<span class="tag-pill tag-inativo">Inativo</span>`
-          : `<span class="tag-pill tag-ativo">Ativo</span>`;
-
-      const card = document.createElement("div");
-      card.className = "paciente-item";
-
-      card.innerHTML = `
-        <div class="paciente-main">
-          <div class="paciente-avatar">${iniciais}</div>
-          <div>
-            <div class="paciente-nome">
-              ${p.NomePaciente || ""}
-              ${idade ? `<span class="paciente-idade">• ${idade} anos</span>` : ""}
-            </div>
-            ${infoLinha ? `<div class="paciente-sec">${infoLinha}</div>` : ""}
+          <div class="topbar-search search-box-pacientes">
+            <input
+              type="text"
+              id="buscaPaciente"
+              placeholder="Buscar paciente pelo nome, CPF ou telefone"
+              autocomplete="off"
+            >
           </div>
         </div>
 
-        <div class="paciente-tags">
-          <span class="tag-pill tag-plano">${plano}</span>
-          ${statusTag}
+        <div class="topbar-right">
+          <div class="topbar-user">
+            <div class="user-info">
+              <span class="user-name">Dr. Marco</span>
+              <span class="user-role">Consultório</span>
+            </div>
+            <button class="user-avatar">MC</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content-inner">
+
+        <h1 class="page-title">Pacientes</h1>
+        <p class="page-subtitle">Visualize, filtre e inicie o atendimento.</p>
+
+        <div class="pacientes-main">
+
+          <!-- LISTA -->
+          <section class="card pacientes-card">
+
+            <div class="pacientes-card-header">
+              <div>
+                <h2>Lista de pacientes</h2>
+                <p class="subtitle">Clique em “Prontuário” ou “Editar”.</p>
+              </div>
+
+              <div class="pacientes-card-actions">
+                <label class="filtro-status">
+                  <span>Status</span>
+                  <select id="filtroAtivo" class="select-status">
+                    <option value="S">Ativos</option>
+                    <option value="N">Inativos</option>
+                    <option value="TODOS">Todos</option>
+                  </select>
+                </label>
+
+                <button type="button" id="btnNovoPaciente" class="btn btn-primary">
+                  + Novo paciente
+                </button>
+              </div>
+            </div>
+
+            <div id="listaPacientes" class="lista-pacientes"></div>
+
+          </section>
+
+          <!-- DRAWER -->
+          <aside class="pacientes-drawer" id="painelPaciente">
+            <div class="drawer-header">
+              <div>
+                <h2 id="tituloFormulario">Novo paciente</h2>
+                <p class="drawer-subtitle">Preencha os dados para salvar.</p>
+              </div>
+              <button type="button" class="drawer-close" id="btnFecharDrawer">✕</button>
+            </div>
+
+            <div class="drawer-body">
+              <form id="paciente-form">
+                <input type="hidden" id="idPaciente">
+
+                <!-- aqui vão os campos do formulário (como montamos antes) -->
+
+              </form>
+
+              <div id="mensagemStatus" class="mensagem-status" hidden></div>
+            </div>
+          </aside>
+
+          <div class="drawer-backdrop" id="backdropPaciente"></div>
         </div>
 
-        <div class="paciente-actions">
-          <button class="btn-primario" data-acao="prontuario" data-id="${p.ID_Paciente}">
-            Prontuário
-          </button>
-          <button class="btn-tabela" data-acao="editar" data-id="${p.ID_Paciente}">
-            Editar
-          </button>
-        </div>
-      `;
+      </main>
 
-      div.appendChild(card);
-    });
-  }
+    </div>
+  </div>
 
-  /* ============================================================
-     EVENTOS / DRAWER
-  ============================================================ */
-
-  function registrarEventos() {
-    const painel = document.getElementById("painelPaciente");
-    const backdrop = document.getElementById("backdropPaciente");
-    const tituloForm = document.getElementById("tituloFormulario");
-
-    const abrirDrawer = function (modo) {
-      if (tituloForm) {
-        tituloForm.textContent =
-          modo === "editar" ? "Editar paciente" : "Novo paciente";
-      }
-      painel.classList.add("aberto");
-      backdrop.classList.add("visivel");
-    };
-
-    const fecharDrawer = function () {
-      painel.classList.remove("aberto");
-      backdrop.classList.remove("visivel");
-    };
-
-    document.getElementById("btnFecharDrawer")?.addEventListener("click", fecharDrawer);
-    backdrop?.addEventListener("click", fecharDrawer);
-
-    document.getElementById("btnNovoPaciente")?.addEventListener("click", () => {
-      limparFormulario();
-      abrirDrawer("novo");
-    });
-
-    document.getElementById("btnCancelarEdicao")?.addEventListener("click", limparFormulario);
-
-    document.getElementById("btnSalvarIrProntuario")?.addEventListener("click", () => {
-      salvarPaciente(true);
-    });
-
-    const form = document.getElementById("paciente-form");
-    if (form) {
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        salvarPaciente(false);
-      });
-    }
-
-    const lista = document.getElementById("listaPacientes");
-    if (lista) {
-      lista.addEventListener("click", (e) => {
-        const btn = e.target.closest("button[data-acao]");
-        if (!btn) return;
-
-        const acao = btn.dataset.acao;
-        const id = btn.dataset.id;
-
-        if (acao === "editar") {
-          const p = pacientesCache.find((x) => x.ID_Paciente === id);
-          if (p) {
-            preencherFormulario(p);
-            abrirDrawer("editar");
-          }
-        } else if (acao === "prontuario") {
-          irParaProntuarioPorId(id);
-        }
-      });
-    }
-
-    const buscaEl = document.getElementById("buscaPaciente");
-    if (buscaEl) {
-      buscaEl.addEventListener("input", renderizarLista);
-      buscaEl.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          renderizarLista();
-        }
-      });
-    }
-
-    document.getElementById("filtroAtivo")?.addEventListener("change", renderizarLista);
-  }
-
-  /* ============================================================
-     INICIALIZAÇÃO
-  ============================================================ */
-
-  function init() {
-    carregarPacientes();
-    registrarEventos();
-  }
-
-  /* API do módulo */
-  return {
-    init,
-  };
-})();
-
-/* ============================================================
-   WRAPPER DE COMPATIBILIDADE (para HTML antigo)
-============================================================ */
-window.Pacientes = PRONTIO.Modules.Pacientes;
+</body>
+</html>

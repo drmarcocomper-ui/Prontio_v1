@@ -1,7 +1,5 @@
 /******************************************************
  * PRONTIO – BACKEND UNIFICADO (Code.gs)
- * Versão com PRONTUÁRIO integrado + Encaminhamento +
- * ProfissionaisDestino, Agenda, Pacientes e todos os módulos.
  ******************************************************/
 
 const CONFIG = {
@@ -52,7 +50,7 @@ function doPost(e) {
       return jsonError_("Parâmetro 'action' é obrigatório.");
     }
 
-    let data; // resposta da função interna
+    let data;
 
     switch (action) {
 
@@ -246,7 +244,6 @@ function doPost(e) {
         });
       }
 
-
       /***********************
        * DEFAULT
        ************************/
@@ -254,7 +251,6 @@ function doPost(e) {
         return jsonError_("Action não reconhecida: " + action);
     }
 
-    // Resposta padrão
     return jsonResponse_({
       ok: true,
       action,
@@ -277,6 +273,7 @@ function parseJsonBody_(e) {
 }
 
 function jsonResponse_(obj) {
+  // ❌ NADA de .setHeader aqui – TextOutput não tem esse método
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);

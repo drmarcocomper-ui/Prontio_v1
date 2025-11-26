@@ -2,19 +2,18 @@
  * PRONTIO – script.js (NÚCLEO + UTILITÁRIOS GLOBAIS)
  *
  * Responsabilidades:
- * - Definir o namespace global PRONTIO
- * - Configuração da SCRIPT_URL (Google Apps Script)
- * - Função padrão de chamada à API (PRONTIO.API.call)
- * - Helpers de localStorage (paciente selecionado, config)
- * - Toasts e loading globais (PRONTIO.UI)
- * - Helpers simples de formulário (PRONTIO.Forms)
+ * - Namespace global PRONTIO
+ * - Helpers de storage
+ * - Toasts / loading
+ * - Helpers de formulário
+ * - Utils
+ * - Compatibilidade com código antigo
  *
- * Compatibilidade:
- * - Mantém as funções globais antigas:
- *   callApi, salvarPacienteSelecionado, carregarPacienteSelecionado,
- *   limparPacienteSelecionado, salvarConfigApp, carregarConfigApp,
- *   showToast, mostrarMensagem, showLoading, hideLoading,
- *   getValue, setValue, calcularIdade.
+ * ⚠️ IMPORTANTE SOBRE API:
+ * - O módulo OFICIAL de comunicação com o backend é:
+ *     api-core.js (produção) ou api-core-dev.js (desenvolvimento)
+ * - Este arquivo define uma implementação LEGADA de PRONTIO.API.call
+ *   e window.callApi APENAS SE ainda não existirem.
  ******************************************************/
 
 /* ===========================
@@ -35,62 +34,70 @@ PRONTIO.App     = PRONTIO.App     || {};
    CONFIGURAÇÃO GERAL
 =========================== */
 
-// URL do Web App do Google Apps Script (NOVA URL)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmzr17gHbUz1V9Ekl8HSMPMV75q3bgKwafu6kosHsKSFP_MkglB6ewywT-FnpTRu4Qbw/exec";
+/**
+ * SCRIPT_URL de BACKEND LEGADO (produção).
+ *
+ * Hoje quem manda de verdade é:
+ *   - api-core.js        → PROD
+ *   - api-core-dev.js    → DEV
+ *
+ * Este valor fica mantido apenas para compatibilidade
+ * com módulos muito antigos que usem PRONTIO.Config.SCRIPT_URL
+ * diretamente ou dependam da implementação LEGADA de PRONTIO.API.call.
+ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFinGtszWRvpaWaBL2hdEgxGinBjq65AhsKVubK-R1K8-ax1DqE1aU13TUsQyY_Rma/exec";
 
-// Deixa disponível também em PRONTIO.Config
+// Deixa disponível também em PRONTIO.Config (LEGADO)
 PRONTIO.Config.SCRIPT_URL = SCRIPT_URL;
 
 /* ===========================
-   CHAMADA PADRÃO À API
+   CHAMADA PADRÃO À API (LEGADO)
+   ⚠️ IMPORTANTE:
+   - O módulo oficial que faz chamadas é api-core.js / api-core-dev.js.
+   - AQUI definimos APENAS UM FALLBACK, usado SOMENTE se
+     PRONTIO.API.call ainda não existir.
 =========================== */
-/**
- * PRONTIO.API.call(payload, options)
- * options:
- *   - showLoading: boolean (default true)
- *
- * IMPORTANTE:
- * - Envia o objeto payload direto como JSON para o backend:
- *   { action: "pacientes-listar", filtros: {...} }
- * - Retorna o JSON COMPLETO vindo do backend:
- *   { ok: true, action: "pacientes-listar", data: {...} }
- */
-PRONTIO.API.call = async function (payload, options = {}) {
-  const { showLoading: show = true } = options;
 
-  if (show) PRONTIO.UI.showLoading();
+if (typeof PRONTIO.API.call !== "function") {
+  console.warn("PRONTIO :: usando implementação LEGADA de PRONTIO.API.call (script.js). Verifique se api-core.js / api-core-dev.js está carregado.");
 
-  try {
-    const response = await fetch(PRONTIO.Config.SCRIPT_URL, {
-      method: "POST",
-      // sem headers → evita preflight CORS; o backend lê e.postData.contents
-      body: JSON.stringify(payload)
-    });
+  PRONTIO.API.call = async function (payload, options = {}) {
+    const { showLoading: show = false } = options;
 
-    if (!response.ok) {
-      throw new Error("Erro HTTP " + response.status);
+    if (show) PRONTIO.UI.showLoading();
+
+    try {
+      const response = await fetch(PRONTIO.Config.SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+        // sem headers → evita preflight CORS; Code.gs lê e.postData.contents
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro HTTP " + response.status);
+      }
+
+      const json = await response.json();
+
+      if (json && json.ok === false) {
+        const msg = json.erro || "Erro inesperado ao processar requisição.";
+        throw new Error(msg);
+      }
+
+      return json;
+
+    } catch (error) {
+      console.error("PRONTIO – API ERROR (LEGADO):", error);
+      PRONTIO.UI.showToast("Erro: " + error.message, "erro");
+      throw error;
+    } finally {
+      if (show) PRONTIO.UI.hideLoading();
     }
-
-    const json = await response.json();
-
-    // Backend padrão PRONTIO (Code.gs) sempre retorna:
-    // { ok: boolean, action: string, data: {...}, ... }
-    if (json && json.ok === false) {
-      const msg = json.erro || "Erro inesperado ao processar a requisição.";
-      throw new Error(msg);
-    }
-
-    // Retornamos o JSON completo para os módulos (agenda.js, pacientes.js, etc.)
-    return json;
-
-  } catch (error) {
-    console.error("PRONTIO – API ERROR:", error);
-    PRONTIO.UI.showToast("Erro: " + error.message, "erro");
-    throw error;
-  } finally {
-    if (show) PRONTIO.UI.hideLoading();
-  }
-};
+  };
+} else {
+  // Já existe PRONTIO.API.call vindo de api-core.js / api-core-dev.js
+  console.log("PRONTIO :: PRONTIO.API.call já definido por api-core. Mantendo implementação oficial.");
+}
 
 /* ===========================
    LOCALSTORAGE – CHAVES
@@ -152,10 +159,6 @@ PRONTIO.Storage.carregarConfigApp = function () {
    TOAST / ALERTAS (UI)
 =========================== */
 
-/**
- * PRONTIO.UI.showToast(msg, tipo)
- * tipo: "info", "sucesso", "erro", "aviso"
- */
 PRONTIO.UI.showToast = function (msg, tipo = "info") {
   const div = document.createElement("div");
   div.className = `prontio-toast ${tipo}`;
@@ -173,10 +176,6 @@ PRONTIO.UI.showToast = function (msg, tipo = "info") {
   }, 3000);
 };
 
-/**
- * Wrapper de compatibilidade para módulos antigos
- * que usam mostrarMensagem(...)
- */
 PRONTIO.UI.mostrarMensagem = function (texto, tipo = "info") {
   PRONTIO.UI.showToast(texto, tipo === "erro" ? "erro" : "info");
 };
@@ -206,7 +205,7 @@ PRONTIO.UI.hideLoading = function () {
 };
 
 /* ===========================
-   HELPERS GERAIS DE FORM
+   HELPERS DE FORMULÁRIO
 =========================== */
 
 PRONTIO.Forms.getValue = function (id) {
@@ -220,7 +219,7 @@ PRONTIO.Forms.setValue = function (id, value) {
 };
 
 /* ===========================
-   UTILITÁRIOS GERAIS
+   UTILS
 =========================== */
 
 PRONTIO.Utils.calcularIdade = function (dataISO) {
@@ -236,42 +235,38 @@ PRONTIO.Utils.calcularIdade = function (dataISO) {
 
 /* ===========================
    WRAPPERS DE COMPATIBILIDADE
-   (mantêm o código antigo funcionando)
 =========================== */
 
-// API
+/**
+ * Aqui garantimos apenas que window.callApi aponte para PRONTIO.API.call,
+ * seja ele o LEGADO (script.js) ou o OFICIAL (api-core.js / api-core-dev.js).
+ */
 window.callApi = PRONTIO.API.call;
 
-// Storage – paciente
 window.salvarPacienteSelecionado = PRONTIO.Storage.salvarPacienteSelecionado;
 window.carregarPacienteSelecionado = PRONTIO.Storage.carregarPacienteSelecionado;
 window.limparPacienteSelecionado = PRONTIO.Storage.limparPacienteSelecionado;
 
-// Storage – config
 window.salvarConfigApp = PRONTIO.Storage.salvarConfigApp;
 window.carregarConfigApp = PRONTIO.Storage.carregarConfigApp;
 
-// UI – toast
 window.showToast = PRONTIO.UI.showToast;
 window.mostrarMensagem = PRONTIO.UI.mostrarMensagem;
 
-// UI – loading
 window.showLoading = PRONTIO.UI.showLoading;
 window.hideLoading = PRONTIO.UI.hideLoading;
 
-// Forms helpers
 window.getValue = PRONTIO.Forms.getValue;
 window.setValue = PRONTIO.Forms.setValue;
 
-// Utils
 window.calcularIdade = PRONTIO.Utils.calcularIdade;
 
 /* ===========================
-   INICIALIZAÇÃO BÁSICA (GANCHO)
+   INICIALIZAÇÃO BASE
 =========================== */
 
 PRONTIO.App.init = PRONTIO.App.init || function () {
-  // Ponto de entrada global, se você quiser algo ao carregar qualquer página.
+  // Inicialização geral do app (opcional)
 };
 
 document.addEventListener("DOMContentLoaded", () => {
