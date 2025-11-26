@@ -1,19 +1,9 @@
 // assets/js/core/api-dev.js
-// Versão mínima, garantida, da função callApi para o ambiente DEV.
 
-// 🔧 TROQUE ESTA CONSTANTE PELA URL DO WEB APP DEV (Apps Script)
-const API_BASE_URL = "https://SUA_URL_WEB_APP_DEV_AQUI/exec";
+const API_BASE_URL = "https://script.google.com/macros/s/AKfycbyqoIJ10ufgRej2K1INGw-s7o_8xwYwj68pkwHPnkxMVNn4x0Fc7xQJK3pv-xyfUx6TBA/exec";
 
-/**
- * Função global para chamar a API do backend DEV.
- *
- * Uso: window.callApi({ action: "Pacientes.Criar", payload: { ... } })
- *
- * Sempre retorna uma Promise com o JSON:
- *   { success: boolean, data: any, errors: string[] }
- */
 window.callApi = async function ({ action, payload = {} }) {
-  if (!API_BASE_URL || API_BASE_URL.includes("SUA_URL_WEB_APP_DEV_AQUI")) {
+  if (!API_BASE_URL) {
     console.warn("⚠️ API_BASE_URL não configurada em api-dev.js");
   }
 
@@ -21,9 +11,7 @@ window.callApi = async function ({ action, payload = {} }) {
 
   const response = await fetch(API_BASE_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 
