@@ -1,7 +1,10 @@
 // assets/js/modules/pacientes-dev.js
-// Lógica da tela de pacientes DEV
+// Lógica da tela de Pacientes (DEV)
 
 document.addEventListener("DOMContentLoaded", () => {
+  // DEBUG: ver se a função global existe
+  console.log("DEBUG pacientes-dev: typeof window.callApi =", typeof window.callApi);
+
   const form = document.getElementById("form-cadastro-paciente");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
@@ -51,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cpf: document.getElementById("cpf").value.trim() || null,
       telefone: document.getElementById("telefone").value.trim() || null,
       email: document.getElementById("email").value.trim() || null,
-      observacoes: document.getElementById("observacoes").value.trim() || null
+      observacoes: document.getElementById("observacoes").value.trim() || null,
     };
 
     if (!pacientePayload.nomeCompleto) {
@@ -63,24 +66,24 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       setStatus("loading", "Enviando dados para o servidor...");
 
-      const response = await callApi({
+      // chamando via window.callApi (garante que usamos a função global)
+      const response = await window.callApi({
         action: "Pacientes.Criar",
-        payload: pacientePayload
+        payload: pacientePayload,
       });
 
       if (response && response.success) {
-        const id = response.data && response.data.idPaciente
-          ? response.data.idPaciente
-          : "(ID desconhecido)";
+        const id =
+          response.data && response.data.idPaciente
+            ? response.data.idPaciente
+            : "(ID desconhecido)";
 
-        setStatus(
-          "ok",
-          "Paciente salvo com sucesso!",
-          `ID gerado: ${id}`
-        );
+        setStatus("ok", "Paciente salvo com sucesso!", `ID gerado: ${id}`);
       } else {
         const errors = (response && response.errors) || [];
-        const firstError = errors.length ? errors[0] : "Erro desconhecido ao salvar.";
+        const firstError = errors.length
+          ? errors[0]
+          : "Erro desconhecido ao salvar.";
         setStatus("error", "Falha ao salvar paciente.", firstError);
       }
     } catch (err) {
